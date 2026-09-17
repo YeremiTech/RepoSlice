@@ -388,9 +388,11 @@ mod tests {
         let result = list_tools_result();
         assert_eq!(result["resultType"], "complete");
         assert_eq!(result["cacheScope"], "private");
-        assert!(result["tools"]
+        let tools = result["tools"]
             .as_array()
-            .is_some_and(|items| items.len() >= 5));
+            .expect("tool catalog must list tools");
+        assert_eq!(tools.len(), 1);
+        assert_eq!(tools[0]["name"], "workspace_status");
     }
 
     #[test]

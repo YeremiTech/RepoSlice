@@ -530,10 +530,11 @@ mod tests {
         )
         .unwrap();
         let fingerprint = inspect_tree(&root.join("source")).unwrap().fingerprint;
+        let absolute_source = root.join("elsewhere").to_string_lossy().replace('\\', "/");
         fs::write(
             root.join("capsule.toml"),
             format!(
-                "[capsule]\nname=\"test\"\n[source]\nroot=\"/private/work\"\n[target]\nvalue=\"x\"\n[metrics]\nfiles=1\n[integrity]\nsource_fingerprint=\"{fingerprint}\"\n"
+                "[capsule]\nname=\"test\"\n[source]\nroot=\"{absolute_source}\"\n[target]\nvalue=\"x\"\n[metrics]\nfiles=1\n[integrity]\nsource_fingerprint=\"{fingerprint}\"\n"
             ),
         )
         .unwrap();

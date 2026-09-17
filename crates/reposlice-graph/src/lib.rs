@@ -241,7 +241,7 @@ pub fn dependency_cycles(model: &ProjectModel) -> Vec<Vec<String>> {
         color.insert(node.to_string(), 2);
     }
 
-    fn canonicalize_cycle(cycle: &mut Vec<String>) {
+    fn canonicalize_cycle(cycle: &mut [String]) {
         if cycle.is_empty() {
             return;
         }
@@ -1687,6 +1687,13 @@ mod tests {
         shared.root = shared_root.to_string_lossy().into_owned();
         shared.model.root = shared.root.clone();
         shared.model.components[0].file = shared_file.to_string_lossy().into_owned();
+        app.model
+            .components
+            .retain(|component| component.id == "app-component");
+        shared
+            .model
+            .components
+            .retain(|component| component.id == "shared-component");
 
         let mut workspace = WorkspaceModel {
             id: "ws-packages".into(),

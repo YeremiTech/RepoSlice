@@ -1031,6 +1031,7 @@ fn scan_project_pipeline(root: &Path, registry: &AnalyzerRegistry) -> io::Result
     Ok(model)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn merge_contribution_parts(
     technologies: &mut Vec<Technology>,
     components: &mut Vec<Component>,

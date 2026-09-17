@@ -288,7 +288,7 @@ fn command_export_workspace(arguments: &[String]) -> Result<(), String> {
     let workspace_id = arguments
         .get(2)
         .ok_or_else(|| "A workspace id is required".to_string())?;
-    let format = option_value(arguments, "--format").unwrap_or_else(|| "json".to_string());
+    let format = option_optional(arguments, "--format").unwrap_or_else(|| "json".to_string());
     let model = load_cached_workspace_model(workspace_id)
         .map_err(|error| error.to_string())?
         .ok_or_else(|| {
@@ -304,7 +304,7 @@ fn command_export_workspace(arguments: &[String]) -> Result<(), String> {
             ))
         }
     };
-    if let Some(output) = option_value(arguments, "--output") {
+    if let Some(output) = option_optional(arguments, "--output") {
         std::fs::write(&output, &content).map_err(|error| error.to_string())?;
         if !format_is_json(arguments) {
             println!("Workspace export: {output}");
@@ -599,11 +599,17 @@ fn command_scan(arguments: &[String]) -> Result<(), String> {
             integrity.passed(),
             integrity.is_clean(),
             integrity.missing_sources.len(),
-            json_string_list(&integrity.missing_sources),
+            json_string_iter(integrity.missing_sources.iter()),
             integrity.missing_targets.len(),
-            json_string_list(&integrity.missing_targets),
+            json_string_iter(integrity.missing_targets.iter()),
             integrity.self_dependencies.len(),
-            json_string_list(&integrity.self_dependencies),
+            json_string_list(
+                &integrity
+                    .self_dependencies
+                    .iter()
+                    .map(|dependency| dependency.source_id.clone())
+                    .collect::<Vec<_>>(),
+            ),
             integrity.cycles.len(),
             json_cycles(&integrity.cycles),
             technologies,
@@ -805,11 +811,17 @@ fn command_graph(arguments: &[String]) -> Result<(), String> {
             integrity.passed(),
             integrity.is_clean(),
             integrity.missing_sources.len(),
-            json_string_list(&integrity.missing_sources),
+            json_string_iter(integrity.missing_sources.iter()),
             integrity.missing_targets.len(),
-            json_string_list(&integrity.missing_targets),
+            json_string_iter(integrity.missing_targets.iter()),
             integrity.self_dependencies.len(),
-            json_string_list(&integrity.self_dependencies),
+            json_string_list(
+                &integrity
+                    .self_dependencies
+                    .iter()
+                    .map(|dependency| dependency.source_id.clone())
+                    .collect::<Vec<_>>(),
+            ),
             integrity.cycles.len(),
             json_cycles(&integrity.cycles),
             rows
@@ -1152,10 +1164,17 @@ fn error_code(error: &str) -> &'static str {
 }
 
 fn json_string_list(values: &[String]) -> String {
+    json_string_iter(values.iter())
+}
+
+fn json_string_iter<'a, I>(values: I) -> String
+where
+    I: IntoIterator<Item = &'a String>,
+{
     format!(
         "[{}]",
         values
-            .iter()
+            .into_iter()
             .map(|value| json_string(value))
             .collect::<Vec<_>>()
             .join(",")

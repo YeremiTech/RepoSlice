@@ -10,6 +10,7 @@ use reposlice_scanner::{
     scan_project_excluding_with_registry, AnalyzerRegistry,
 };
 use serde::{Deserialize, Serialize};
+use std::cmp::Reverse;
 use std::collections::BTreeMap;
 use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
@@ -976,7 +977,7 @@ pub fn list_analysis_records(workspace_id: &str) -> io::Result<Vec<AnalysisRecor
         .filter_map(Result::ok)
         .filter_map(|entry| read_analysis_record_file(&entry.path()).ok().flatten())
         .collect::<Vec<_>>();
-    records.sort_by(|left, right| right.completed_at_ms.cmp(&left.completed_at_ms));
+    records.sort_by_key(|record| Reverse(record.completed_at_ms));
     Ok(records)
 }
 
@@ -1374,8 +1375,7 @@ fn read_analysis_record_file(path: &Path) -> io::Result<Option<AnalysisRecord>> 
 
 fn normalize_record_value(value: &str) -> String {
     value
-        .replace('\n', " ")
-        .replace('\r', " ")
+        .replace(['\n', '\r'], " ")
         .replace('=', ":")
         .trim()
         .to_string()
@@ -2229,7 +2229,7 @@ mod tests {
     #[test]
     fn malformed_cache_is_quarantined_instead_of_reused() {
         let _lock = TEST_ENV_LOCK.lock().unwrap();
-        let home = TestHome::new("cache-quarantine");
+        let _home = TestHome::new("cache-quarantine");
         let workspace = create_workspace("Quarantine Workspace").unwrap();
         let path = workspace_model_cache_path(&workspace.id);
         fs::create_dir_all(path.parent().unwrap()).unwrap();

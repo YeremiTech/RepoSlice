@@ -248,7 +248,7 @@ pub fn technology_classification(category: &str, name: &str) -> (&'static str, &
             ("Framework", "Frontend Framework")
         }
         ("framework", _) => ("Framework", "Backend Framework"),
-        ("library", n) if n == "react" => ("Library", "UI Library"),
+        ("library", "react") => ("Library", "UI Library"),
         ("data", n) if ["hibernate", "prisma", "typeorm", "sequelize", "jpa"].contains(&n) => {
             ("Data", "ORM")
         }
@@ -256,10 +256,10 @@ pub fn technology_classification(category: &str, name: &str) -> (&'static str, &
         ("build", n) if ["npm", "pnpm", "yarn", "composer"].contains(&n) => {
             ("Build", "Package Manager")
         }
-        ("build", n) if n == "webpack" => ("Build", "Bundler"),
+        ("build", "webpack") => ("Build", "Bundler"),
         ("build", _) => ("Build", "Build Tool"),
         ("runtime", _) => ("Runtime", "Runtime"),
-        ("infrastructure", n) if n == "docker" => ("Infrastructure", "Containerization"),
+        ("infrastructure", "docker") => ("Infrastructure", "Containerization"),
         _ => ("Tooling", "Tool"),
     }
 }
@@ -350,21 +350,11 @@ impl Default for FrameworkDetectionPolicy {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FrameworkDetection {
     pub name: String,
     pub confidence: u8,
     pub evidence: Vec<Evidence>,
-}
-
-impl Default for FrameworkDetection {
-    fn default() -> Self {
-        Self {
-            name: String::new(),
-            confidence: 0,
-            evidence: Vec::new(),
-        }
-    }
 }
 
 impl FrameworkDetection {
@@ -1036,8 +1026,8 @@ impl Sha256Hasher {
             0xc67178f2,
         ];
         let mut w = [0u32; 64];
-        for (index, chunk) in block.chunks_exact(4).take(16).enumerate() {
-            w[index] = u32::from_be_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]);
+        for (index, chunk) in block.as_chunks::<4>().0.iter().take(16).enumerate() {
+            w[index] = u32::from_be_bytes(*chunk);
         }
         for index in 16..64 {
             let s0 = w[index - 15].rotate_right(7)
