@@ -1,6 +1,14 @@
 # Changelog
 
+## 0.4.0 RC1 release hardening
+
+- Added CI concurrency, timeouts and integrated Tauri no-bundle builds on Linux, Windows and macOS.
+- Added a release version contract across npm, Tauri and all Cargo packages.
+- Added downloadable real-corpus validation reports alongside performance baselines.
+- Release tags now package Desktop and CLI/MCP artifacts per platform with build provenance and SHA-256 checksums, then publish a GitHub Release automatically.
+- Added public CI, corpus and release status badges to the README.
 - Removed the Architecture Intelligence module and its dedicated report, explainability, rules, history/diff and agent-context surfaces; generic workspace exports remain available.
+
 ## 0.4.0 RC1 Hotfix 1
 
 - Added a contract regression test so local graph fields (`missing_sources` / `missing_targets`) cannot be reused accidentally for workspace-level integrity.

@@ -28,6 +28,7 @@ cargo check --workspace --all-features --locked
 cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
 cargo test --workspace --all-features --locked
 node scripts/check-repository-hygiene.mjs
+node scripts/check-release-version.mjs
 ```
 
 For Desktop:
@@ -50,3 +51,16 @@ Fixtures under `fixtures/analysis` are intentionally small and deterministic. Do
 ## Security
 
 Do not open a public issue containing credentials, private source code or sensitive repository contents. Follow `SECURITY.md` for security reports.
+
+
+## Release process
+
+RepoSlice keeps one base version across the Rust packages, the Desktop npm package, `package-lock.json`, `tauri.conf.json` and the VS Code integration package. Run:
+
+```powershell
+node scripts/check-release-version.mjs
+```
+
+before creating a release tag. A prerelease tag such as `v0.4.0-rc.1` is accepted when its base version matches `0.4.0`.
+
+Pushing a `v*` tag starts the release workflow. The workflow repeats the complete quality gate, builds Desktop plus CLI/MCP on Linux, Windows and macOS, archives each platform output, verifies SHA-256 checksums and publishes the GitHub Release automatically. Tags containing a prerelease suffix are published as prereleases. Signing and notarization remain an operator responsibility because private signing credentials are not stored in the repository.

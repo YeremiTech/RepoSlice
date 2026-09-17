@@ -60,3 +60,9 @@ GEMINI.md
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Quality/release workflow output
+quality/results/
+.reposlice-quality/
+.reposlice-performance/
+artifacts/

@@ -1,0 +1,306 @@
+name: release-bundles
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Release quality gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+      - name: Repository hygiene
+        run: node scripts/check-repository-hygiene.mjs
+      - name: Release version contract
+        env:
+          RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+        run: node scripts/check-release-version.mjs
+      - name: Rust format
+        run: cargo fmt --all -- --check
+      - name: Rust check
+        run: cargo check --workspace --all-features --locked
+      - name: Rust lint
+        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+      - name: Rust tests
+        run: cargo test --workspace --all-features --locked
+      - name: Framework quality gate
+        run: cargo test --locked -p reposlice-scanner framework_quality_corpus_meets_thresholds -- --nocapture
+      - name: Workspace lifecycle smoke test
+        shell: pwsh
+        run: ./scripts/smoke-workspace.ps1
+      - name: Install frontend dependencies
+        working-directory: apps/desktop
+        run: npm ci
+      - name: Frontend contracts
+        working-directory: apps/desktop
+        run: npm test
+      - name: Frontend production build
+        working-directory: apps/desktop
+        run: npm run build
+      - name: Linux Tauri dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+      - name: Tauri backend check
+        run: cargo check --locked --manifest-path apps/desktop/src-tauri/Cargo.toml
+      - name: Tauri backend lint
+        run: cargo clippy --locked --manifest-path apps/desktop/src-tauri/Cargo.toml --all-targets -- -D warnings
+      - name: Tauri backend tests
+        run: cargo test --locked --manifest-path apps/desktop/src-tauri/Cargo.toml
+
+  bundle:
+    name: Bundle RepoSlice (${{ matrix.os }})
+    needs: preflight
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+      - name: Linux Tauri dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+      - name: Install frontend dependencies
+        working-directory: apps/desktop
+        run: npm ci
+      - name: Build desktop bundles
+        working-directory: apps/desktop
+        run: npm run tauri:build
+      - name: Write build provenance (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="apps/desktop/src-tauri/target/release/bundle"
+          cat > "$root/BUILD_INFO.json" <<EOF_INFO
+          {
+            "ref": "${GITHUB_REF_NAME}",
+            "commit": "${GITHUB_SHA}",
+            "os": "${RUNNER_OS}",
+            "arch": "${RUNNER_ARCH}"
+          }
+          EOF_INFO
+      - name: Write build provenance (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $root = (Resolve-Path 'apps/desktop/src-tauri/target/release/bundle').Path
+          [ordered]@{
+            ref = $env:GITHUB_REF_NAME
+            commit = $env:GITHUB_SHA
+            os = $env:RUNNER_OS
+            arch = $env:RUNNER_ARCH
+          } | ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $root 'BUILD_INFO.json')
+      - name: Generate bundle checksums (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd apps/desktop/src-tauri/target/release/bundle
+          find . -type f ! -name SHA256SUMS.txt -print | sort | while IFS= read -r file; do
+            shasum -a 256 "$file"
+          done > SHA256SUMS.txt
+      - name: Generate bundle checksums (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $root = (Resolve-Path 'apps/desktop/src-tauri/target/release/bundle').Path
+          $lines = Get-ChildItem $root -Recurse -File |
+            Where-Object { $_.Name -ne 'SHA256SUMS.txt' } |
+            Sort-Object FullName |
+            ForEach-Object {
+              $relative = [IO.Path]::GetRelativePath($root, $_.FullName).Replace('\', '/')
+              $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+              "$hash  $relative"
+            }
+          $lines | Set-Content -Encoding utf8 (Join-Path $root 'SHA256SUMS.txt')
+      - name: Package desktop release archive (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="apps/desktop/src-tauri/target/release/bundle"
+          out="artifacts/release"
+          mkdir -p "$out"
+          label="${GITHUB_REF_NAME//\//-}"
+          name="reposlice-desktop-${label}-${RUNNER_OS}-${RUNNER_ARCH}.tar.gz"
+          tar -C "$root" -czf "$out/$name" .
+          (cd "$out" && shasum -a 256 "$name" > "$name.sha256")
+      - name: Package desktop release archive (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $root = (Resolve-Path 'apps/desktop/src-tauri/target/release/bundle').Path
+          $out = 'artifacts/release'
+          New-Item -ItemType Directory -Force $out | Out-Null
+          $label = $env:GITHUB_REF_NAME.Replace('/', '-')
+          $name = "reposlice-desktop-$label-$env:RUNNER_OS-$env:RUNNER_ARCH.zip"
+          $archive = Join-Path $out $name
+          Compress-Archive -Path (Join-Path $root '*') -DestinationPath $archive -Force
+          $hash = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $name" | Set-Content -Encoding ascii "$archive.sha256"
+      - name: Upload desktop release archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: reposlice-release-desktop-${{ runner.os }}-${{ runner.arch }}
+          path: artifacts/release/*
+          if-no-files-found: error
+          retention-days: 14
+
+  tooling:
+    name: CLI and MCP (${{ matrix.os }})
+    needs: preflight
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build RepoSlice CLI and MCP
+        run: cargo build --release --locked -p reposlice-cli -p reposlice-mcp
+      - name: Package tooling release archive (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          stage="artifacts/tooling-stage"
+          out="artifacts/release"
+          mkdir -p "$stage" "$out"
+          cp target/release/reposlice "$stage/reposlice"
+          cp target/release/reposlice-mcp "$stage/reposlice-mcp"
+          cat > "$stage/BUILD_INFO.json" <<EOF_INFO
+          {
+            "version": "${GITHUB_REF_NAME}",
+            "commit": "${GITHUB_SHA}",
+            "os": "${RUNNER_OS}",
+            "arch": "${RUNNER_ARCH}",
+            "mcpProtocolVersion": "2026-07-28"
+          }
+          EOF_INFO
+          (cd "$stage" && shasum -a 256 reposlice reposlice-mcp BUILD_INFO.json > SHA256SUMS.txt)
+          label="${GITHUB_REF_NAME//\//-}"
+          name="reposlice-tooling-${label}-${RUNNER_OS}-${RUNNER_ARCH}.tar.gz"
+          tar -C "$stage" -czf "$out/$name" .
+          (cd "$out" && shasum -a 256 "$name" > "$name.sha256")
+      - name: Package tooling release archive (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $stage = 'artifacts/tooling-stage'
+          $out = 'artifacts/release'
+          New-Item -ItemType Directory -Force $stage, $out | Out-Null
+          Copy-Item target/release/reposlice.exe (Join-Path $stage 'reposlice.exe')
+          Copy-Item target/release/reposlice-mcp.exe (Join-Path $stage 'reposlice-mcp.exe')
+          [ordered]@{
+            version = $env:GITHUB_REF_NAME
+            commit = $env:GITHUB_SHA
+            os = $env:RUNNER_OS
+            arch = $env:RUNNER_ARCH
+            mcpProtocolVersion = '2026-07-28'
+          } | ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $stage 'BUILD_INFO.json')
+          $files = @('reposlice.exe', 'reposlice-mcp.exe', 'BUILD_INFO.json')
+          $lines = foreach ($file in $files) {
+            $hash = (Get-FileHash (Join-Path $stage $file) -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $file"
+          }
+          $lines | Set-Content -Encoding ascii (Join-Path $stage 'SHA256SUMS.txt')
+          $label = $env:GITHUB_REF_NAME.Replace('/', '-')
+          $name = "reposlice-tooling-$label-$env:RUNNER_OS-$env:RUNNER_ARCH.zip"
+          $archive = Join-Path $out $name
+          Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $archive -Force
+          $hash = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $name" | Set-Content -Encoding ascii "$archive.sha256"
+      - name: Upload CLI and MCP release archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: reposlice-release-tooling-${{ runner.os }}-${{ runner.arch }}
+          path: artifacts/release/*
+          if-no-files-found: error
+          retention-days: 14
+
+  publish-release:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [preflight, bundle, tooling]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: reposlice-release-*
+          path: release-assets
+          merge-multiple: true
+      - name: Verify packaged release checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd release-assets
+          shopt -s nullglob
+          checksums=( *.sha256 )
+          if [ "${#checksums[@]}" -eq 0 ]; then
+            echo "No release checksums were downloaded." >&2
+            exit 1
+          fi
+          for checksum in "${checksums[@]}"; do
+            sha256sum -c "$checksum"
+          done
+      - name: Publish tagged release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          prerelease=()
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            prerelease=(--prerelease)
+          fi
+          mapfile -t assets < <(find release-assets -maxdepth 1 -type f -print | sort)
+          if [ "${#assets[@]}" -eq 0 ]; then
+            echo "No release assets were downloaded." >&2
+            exit 1
+          fi
+          gh release create "$GITHUB_REF_NAME" "${assets[@]}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "RepoSlice $GITHUB_REF_NAME" \
+            --generate-notes \
+            "${prerelease[@]}"

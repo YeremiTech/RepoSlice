@@ -7,10 +7,17 @@ Motor de análisis arquitectónico y slicing de repositorios que descubre estruc
 [![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react)](https://react.dev/)
 [![Tauri](https://img.shields.io/badge/Tauri-24C8DB?style=flat&logo=tauri)](https://tauri.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/YeremiTech/RepoSlice/actions/workflows/ci.yml/badge.svg)](https://github.com/YeremiTech/RepoSlice/actions/workflows/ci.yml)
+[![Real corpus](https://github.com/YeremiTech/RepoSlice/actions/workflows/quality-real.yml/badge.svg)](https://github.com/YeremiTech/RepoSlice/actions/workflows/quality-real.yml)
+[![Release](https://github.com/YeremiTech/RepoSlice/actions/workflows/release-desktop.yml/badge.svg)](https://github.com/YeremiTech/RepoSlice/actions/workflows/release-desktop.yml)
 
-## Preview
+## Estado del proyecto
 
-<!-- Agregar capturas de la aplicación Desktop aquí cuando estén disponibles -->
+RepoSlice `0.4.0` está preparado como **Release Candidate técnico**. Cada cambio se valida con contratos del frontend y una matriz Rust/Tauri en Linux, Windows y macOS. El corpus real y los benchmarks se ejecutan de forma programada en Linux y Windows.
+
+Los tags `vMAJOR.MINOR.PATCH` y sus variantes prerelease, por ejemplo `v0.4.0-rc.1`, pasan por el quality gate antes de empaquetar Desktop, CLI y MCP con procedencia y SHA-256. Si el tag incluye un sufijo prerelease, GitHub lo publica automáticamente como prerelease.
+
+Las capturas de interfaz deben corresponder a un build verificado del release actual; no se conserva una captura antigua como preview del producto.
 
 ## ¿Qué es RepoSlice?
 
@@ -173,6 +180,19 @@ Para construir el instalador de Tauri:
 ```powershell
 npm run tauri:build
 ```
+
+### Releases verificadas
+
+El workflow `release-bundles` valida el repositorio, comprueba que todas las versiones internas coincidan, ejecuta el gate Rust/Frontend/Tauri y genera artefactos para Linux, Windows y macOS. Los artefactos Desktop y CLI/MCP se empaquetan por plataforma junto con `BUILD_INFO.json` y checksums SHA-256.
+
+Para preparar un RC de `0.4.0`:
+
+```powershell
+git tag v0.4.0-rc.1
+git push origin v0.4.0-rc.1
+```
+
+El tag debe compartir la misma versión base que `package.json`, `package-lock.json`, `tauri.conf.json`, la integración VS Code y todos los paquetes Cargo. `scripts/check-release-version.mjs` verifica ese contrato antes de publicar.
 
 ### Estilos, iconos e idioma
 

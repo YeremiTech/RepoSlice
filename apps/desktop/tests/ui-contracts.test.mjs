@@ -110,12 +110,13 @@ test('framework quality corpus covers the extended supported matrix', () => {
   }
 });
 
-test('desktop release workflow gates and verifies Linux Windows and macOS bundles', () => {
+test('desktop release workflow gates, packages and publishes Linux Windows and macOS releases', () => {
   const workflow = src('../../.github/workflows/release-desktop.yml');
   assert.match(workflow, /ubuntu-latest/);
   assert.match(workflow, /windows-latest/);
   assert.match(workflow, /macos-latest/);
   assert.match(workflow, /needs: preflight/);
+  assert.match(workflow, /check-release-version\.mjs/);
   assert.match(workflow, /cargo clippy --workspace --all-targets --all-features --locked -- -D warnings/);
   assert.match(workflow, /framework_quality_corpus_meets_thresholds/);
   assert.match(workflow, /npm run tauri:build/);
@@ -123,6 +124,19 @@ test('desktop release workflow gates and verifies Linux Windows and macOS bundle
   assert.match(workflow, /BUILD_INFO\.json/);
   assert.match(workflow, /GITHUB_SHA/);
   assert.match(workflow, /actions\/upload-artifact@v4/);
+  assert.match(workflow, /actions\/download-artifact@v4/);
+  assert.match(workflow, /Publish GitHub Release/);
+  assert.match(workflow, /gh release create/);
+  assert.match(workflow, /--verify-tag/);
+});
+
+test('release version contract keeps Rust Tauri and npm package versions synchronized', () => {
+  const script = src('../../scripts/check-release-version.mjs');
+  assert.match(script, /package-lock\.json/);
+  assert.match(script, /tauri\.conf\.json/);
+  assert.match(script, /Cargo\.toml/);
+  assert.match(script, /RELEASE_TAG/);
+  assert.match(script, /Version contract: PASS/);
 });
 
 test('workspace persistence rejects drift and verifies cache integrity', () => {

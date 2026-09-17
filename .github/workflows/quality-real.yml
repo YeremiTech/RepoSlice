@@ -1,0 +1,63 @@
+name: real-corpus-and-performance
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-real-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  real-corpus:
+    name: Real corpus (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify project version consistency
+        run: node scripts/check-release-version.mjs
+      - name: Validate real repository corpus
+        shell: pwsh
+        run: ./scripts/validate-real-corpus.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reposlice-real-corpus-${{ runner.os }}-${{ runner.arch }}
+          path: quality/results/real-corpus/*.json
+          if-no-files-found: error
+          retention-days: 30
+
+  performance-baseline:
+    name: Performance corpus (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Measure real-project cold/warm baselines
+        shell: pwsh
+        run: ./scripts/benchmark-real-corpus.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reposlice-performance-${{ runner.os }}-${{ runner.arch }}
+          path: quality/results/performance/*.json
+          if-no-files-found: error
+          retention-days: 30
