@@ -1,0 +1,62 @@
+# Rust / Tauri build output
+target/
+apps/desktop/src-tauri/target/
+
+# Node / frontend output
+node_modules/
+dist/
+coverage/
+.vite/
+*.tsbuildinfo
+
+# RepoSlice runtime data
+.reposlice/
+
+# Tauri-generated development artifacts
+apps/desktop/src-tauri/gen/schemas/
+apps/desktop/src-tauri/icons/android/
+apps/desktop/src-tauri/icons/ios/
+
+# Local environment / credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+
+# IDE / editor and local assistant state
+.idea/
+.vscode/
+.fleet/
+.history/
+.cursor/
+.claude/
+.codex/
+.aider/
+.windsurf/
+.continue/
+.roo/
+.cody/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.github/copilot-instructions.md
+*.swp
+*.swo
+
+# Logs, temporary and patch leftovers
+*.log
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+*~
+
+# Operating-system metadata
+.DS_Store
+Thumbs.db
+Desktop.ini

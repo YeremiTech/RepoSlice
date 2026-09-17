@@ -1,0 +1,258 @@
+/* =========================================================
+   MY CAPSULES VIEW
+   Los estados comparten la paleta neón global y mantienen
+   aislados sus estilos del resto de paneles de la aplicación.
+   ========================================================= */
+
+.capsules-panel {
+  min-height: 560px;
+  overflow: hidden;
+  border-color: rgba(43, 69, 108, 0.58);
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 4% 0%, rgba(var(--neon-violet-rgb), 0.055), transparent 25%),
+    radial-gradient(circle at 82% 0%, rgba(var(--neon-cyan-rgb), 0.025), transparent 28%),
+    linear-gradient(180deg, rgba(5, 12, 24, 0.99), rgba(2, 7, 15, 0.998));
+}
+
+.capsules-panel .count-badge {
+  min-height: 29px;
+  padding: 0 13px;
+  border-radius: 999px;
+  color: #dec6ff;
+  background: rgba(var(--neon-violet-rgb), 0.08);
+  border-color: rgba(var(--neon-violet-rgb), 0.5);
+  box-shadow: 0 0 14px rgba(var(--neon-violet-rgb), 0.09);
+  font-size: 10px;
+  font-weight: 740;
+}
+
+.capsules-panel .capsule-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: 16px;
+  padding: 18px;
+}
+
+.capsules-panel .capsule-card {
+  --capsule-tone: var(--neon-violet);
+
+  position: relative;
+  min-width: 0;
+  min-height: 225px;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--capsule-tone) 52%, transparent);
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--capsule-tone) 12%, transparent), transparent 44%),
+    linear-gradient(150deg, rgba(6, 15, 29, 0.99), rgba(4, 9, 20, 0.995));
+  box-shadow:
+    inset 0 0 24px color-mix(in srgb, var(--capsule-tone) 3%, transparent),
+    0 12px 28px rgba(0, 0, 0, 0.2);
+  transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.capsules-panel .capsule-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 2px;
+  border-radius: 999px;
+  background: var(--capsule-tone);
+  box-shadow: 0 0 12px var(--capsule-tone);
+}
+
+.capsules-panel .capsule-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--capsule-tone) 78%, transparent);
+  box-shadow:
+    inset 0 0 26px color-mix(in srgb, var(--capsule-tone) 5%, transparent),
+    0 0 20px color-mix(in srgb, var(--capsule-tone) 11%, transparent),
+    0 14px 30px rgba(0, 0, 0, 0.24);
+}
+
+.capsules-panel .capsule-created { --capsule-tone: var(--neon-violet); }
+.capsules-panel .capsule-verified { --capsule-tone: var(--neon-green); }
+.capsules-panel .capsule-invalid { --capsule-tone: var(--neon-red); }
+
+.capsules-panel .capsule-symbol {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  color: var(--capsule-tone);
+  background: color-mix(in srgb, var(--capsule-tone) 10%, rgba(3, 9, 19, 0.92));
+  border: 1px solid color-mix(in srgb, var(--capsule-tone) 52%, transparent);
+  box-shadow:
+    inset 0 0 16px color-mix(in srgb, var(--capsule-tone) 8%, transparent),
+    0 0 14px color-mix(in srgb, var(--capsule-tone) 14%, transparent);
+}
+
+.capsules-panel .capsule-symbol svg {
+  filter: drop-shadow(0 0 5px currentColor);
+}
+
+.capsules-panel .capsule-status {
+  min-height: 26px;
+  padding: 0 10px;
+  color: var(--capsule-tone);
+  background: color-mix(in srgb, var(--capsule-tone) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--capsule-tone) 48%, transparent);
+  font-size: 9px;
+  font-weight: 820;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--capsule-tone) 10%, transparent);
+}
+
+.capsule-target {
+  min-width: 0;
+  margin-top: 16px;
+}
+
+.capsule-target > span {
+  display: block;
+  margin-bottom: 5px;
+  color: color-mix(in srgb, var(--capsule-tone) 76%, white 24%);
+  font-size: 9px;
+  font-weight: 820;
+  letter-spacing: 0.08em;
+}
+
+.capsules-panel .capsule-target > strong {
+  display: block;
+  overflow: hidden;
+  color: #f8faff;
+  font-size: 14px;
+  font-weight: 720;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.capsules-panel .capsule-path {
+  display: block;
+  min-width: 0;
+  margin-top: 10px;
+  padding: 9px 10px;
+  overflow: hidden;
+  border: 1px solid rgba(65, 87, 123, 0.38);
+  border-radius: 7px;
+  color: #a5b7d2;
+  background: rgba(2, 8, 17, 0.68);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.capsules-panel .verification-checks {
+  gap: 0;
+  margin-top: 12px;
+  padding: 5px 10px;
+  border-color: rgba(58, 82, 119, 0.5);
+  border-radius: 8px;
+  background: rgba(3, 9, 19, 0.76);
+}
+
+.capsules-panel .verification-row {
+  min-height: 42px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(55, 78, 113, 0.28);
+}
+
+.capsules-panel .verification-row:last-child {
+  border-bottom: 0;
+}
+
+.capsules-panel .verification-row > div {
+  min-width: 0;
+}
+
+.capsules-panel .verification-row span {
+  color: #eef3fc;
+  font-size: 10px;
+  font-weight: 620;
+}
+
+.capsules-panel .verification-row small {
+  max-width: 260px;
+  margin-top: 4px;
+  color: #8195b4;
+  font-size: 9px;
+}
+
+.capsules-panel .verification-row b {
+  flex: 0 0 auto;
+  font-size: 9px;
+  font-weight: 850;
+}
+
+.capsules-panel .verify-button {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+  color: var(--capsule-tone);
+  background: color-mix(in srgb, var(--capsule-tone) 8%, rgba(3, 9, 18, 0.96));
+  border-color: color-mix(in srgb, var(--capsule-tone) 54%, transparent);
+  font-size: 11px;
+  font-weight: 760;
+  box-shadow: inset 0 0 14px color-mix(in srgb, var(--capsule-tone) 5%, transparent);
+}
+
+.capsules-panel .verify-button:hover:not(:disabled) {
+  color: #ffffff;
+  border-color: var(--capsule-tone);
+  background: color-mix(in srgb, var(--capsule-tone) 17%, rgba(3, 9, 18, 0.96));
+  box-shadow: 0 0 16px color-mix(in srgb, var(--capsule-tone) 16%, transparent);
+}
+
+.capsules-panel .empty-state strong {
+  color: #f5f8ff;
+  font-size: 15px;
+}
+
+.capsules-panel .empty-state span {
+  color: #91a4c2;
+  font-size: 11px;
+}
+
+@media (max-width: 1400px) {
+  .capsules-panel .capsule-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 920px) {
+  .architecture-grid-v2 {
+    grid-template-columns: 1fr;
+  }
+
+  .architecture-relation-v2 {
+    grid-template-columns: 1fr;
+  }
+
+  .architecture-relation-v2__edge {
+    grid-template-columns: 1fr auto auto;
+  }
+}
+
+
+.capsule-sandbox-plan {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  display: grid;
+  gap: 10px;
+}
+.capsule-sandbox-plan > small { color: var(--muted); line-height: 1.45; }
+.capsule-sandbox-row { display: grid; gap: 6px; padding: 10px; border: 1px solid var(--border); border-radius: 10px; }
+.capsule-sandbox-row > div { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.capsule-sandbox-row span, .capsule-sandbox-row em { color: var(--muted); font-size: 12px; }
+.capsule-sandbox-row code { overflow-wrap: anywhere; white-space: normal; }

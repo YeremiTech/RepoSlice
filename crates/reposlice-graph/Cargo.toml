@@ -1,0 +1,8 @@
+[package]
+name = "reposlice-graph"
+version = "0.4.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+reposlice-core = { path = "../reposlice-core" }

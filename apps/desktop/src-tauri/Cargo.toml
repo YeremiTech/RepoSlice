@@ -1,0 +1,28 @@
+[package]
+name = "reposlice-desktop"
+version = "0.4.0"
+description = "RepoSlice desktop application"
+authors = ["RepoSlice Contributors"]
+edition = "2021"
+license = "MIT"
+
+[lib]
+name = "reposlice_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+png = "0.17"
+reposlice-workspace = { path = "../../../crates/reposlice-workspace" }
+reposlice-scanner = { path = "../../../crates/reposlice-scanner" }
+reposlice-capsule = { path = "../../../crates/reposlice-capsule" }
+reposlice-verifier = { path = "../../../crates/reposlice-verifier" }
+reposlice-runtime = { path = "../../../crates/reposlice-runtime" }
+reposlice-core = { path = "../../../crates/reposlice-core" }
+reposlice-graph = { path = "../../../crates/reposlice-graph" }
+

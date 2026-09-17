@@ -1,0 +1,173 @@
+/* ========================================================================== */
+/* FINAL PRODUCT CALIBRATION                                                   */
+/* Keeps dense analysis views readable while preserving a consistent control   */
+/* rhythm, keyboard focus and responsive behavior across Desktop surfaces.      */
+/* ========================================================================== */
+
+:root {
+  --control-height: 44px;
+  --control-height-compact: 34px;
+  --page-padding: clamp(18px, 2vw, 30px);
+}
+
+body {
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.main-content {
+  margin-inline: auto;
+}
+
+.button {
+  min-height: var(--control-height);
+  height: var(--control-height);
+  font-size: 14px;
+}
+
+.button-sm {
+  min-height: var(--control-height-compact);
+  height: var(--control-height-compact);
+  font-size: 12px;
+}
+
+.toolbar-field select,
+.select-control,
+.modal-card input {
+  min-height: var(--control-height);
+  height: var(--control-height);
+  font-size: 14px;
+}
+
+.toolbar-field select:disabled,
+.select-control:disabled,
+.modal-card input:disabled {
+  cursor: not-allowed;
+  color: var(--color-text-disabled);
+  background: color-mix(in srgb, var(--color-surface-elevated) 78%, #000);
+}
+
+/* Helpful context should remain visible; dense secondary diagnostics stay in
+   their dedicated detail panels. */
+.section-header p,
+.metric-hint {
+  display: block !important;
+}
+
+.section-header p {
+  margin: 3px 0 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.metric-hint {
+  color: var(--color-text-muted);
+  font-size: 12px !important;
+  line-height: 1.35;
+}
+
+.nav-button[aria-current="page"] {
+  color: var(--color-text-primary);
+}
+
+.modal-card:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 3px;
+}
+
+.analysis-progress-banner,
+.app-error-banner {
+  position: sticky;
+  top: 10px;
+  z-index: 35;
+  backdrop-filter: blur(12px);
+}
+
+.analysis-progress-banner__track > span {
+  transition: width 180ms ease-out;
+}
+
+/* Large analytical collections are expensive to paint even when most rows are
+   below the viewport. Chromium/WebView2 can skip off-screen layout/paint; other
+   webviews safely ignore this progressive enhancement. */
+.components-neon-row--item,
+.entrypoints-card,
+.project-neon-card,
+.capsule-card,
+.audit-detail {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 72px;
+}
+
+.project-neon-card {
+  contain-intrinsic-size: 1px 360px;
+}
+
+.entrypoints-card,
+.capsule-card {
+  contain-intrinsic-size: 1px 150px;
+}
+
+/* Keep focus visible on every native form control, not only custom buttons. */
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1100px) {
+  .main-content {
+    padding: 18px;
+  }
+
+  .project-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .explorer-layout.has-detail,
+  .capsules-workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .explorer-detail-panel {
+    position: static;
+    max-height: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .main-content {
+    padding: 14px;
+  }
+
+  .project-toolbar,
+  .metrics-grid,
+  .overview-columns,
+  .overview-secondary-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .project-toolbar > .scan-button,
+  .project-toolbar > .target-select {
+    grid-column: 1;
+  }
+
+  .modal-card {
+    max-height: calc(100vh - 24px);
+    overflow: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

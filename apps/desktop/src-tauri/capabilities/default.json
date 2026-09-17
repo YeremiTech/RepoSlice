@@ -1,0 +1,11 @@
+{
+  "identifier": "default",
+  "description": "RepoSlice desktop permissions",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "dialog:default"
+  ]
+}

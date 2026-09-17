@@ -1,0 +1,16 @@
+[package]
+name = "reposlice-scanner"
+version = "0.4.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+reposlice-core = { path = "../reposlice-core" }
+reposlice-parser-java = { path = "../../parsers/reposlice-parser-java" }
+reposlice-parser-typescript = { path = "../../parsers/reposlice-parser-typescript" }
+reposlice-parser-php = { path = "../../parsers/reposlice-parser-php" }
+reposlice-parser-polyglot = { path = "../../parsers/reposlice-parser-polyglot" }
+reposlice-adapter-spring = { path = "../../adapters/reposlice-adapter-spring" }
+reposlice-adapter-laravel = { path = "../../adapters/reposlice-adapter-laravel" }
+reposlice-adapter-web = { path = "../../adapters/reposlice-adapter-web" }
+anyhow = "1"

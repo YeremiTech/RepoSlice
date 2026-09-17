@@ -1,0 +1,8 @@
+# case	repository	url	relative_path	expected_technologies	minimum_compatibility	minimum_components	minimum_entrypoints
+spring-petclinic	spring-petclinic	https://github.com/spring-projects/spring-petclinic.git	.	Java,Spring Boot	L3	20	5
+angular-example-app	angular-example-app	https://github.com/Ismaestro/angular-example-app.git	.	TypeScript,Angular	L3	10	1
+fastapi-template-backend	full-stack-fastapi-template	https://github.com/fastapi/full-stack-fastapi-template.git	backend	Python,FastAPI	L3	10	3
+fastapi-template-frontend	full-stack-fastapi-template	https://github.com/fastapi/full-stack-fastapi-template.git	frontend	TypeScript,React	L3	10	1
+golang-gin-realworld	golang-gin-realworld-example-app	https://github.com/gothinkster/golang-gin-realworld-example-app.git	.	Go,Gin	L3	8	3
+axum-diesel-real-world	axum-diesel-real-world	https://github.com/Quentin-Piot/axum-diesel-real-world.git	.	Rust,Axum	L3	8	3
+spring-petclinic-microservices-customers	spring-petclinic-microservices	https://github.com/spring-petclinic/spring-petclinic-microservices.git	spring-petclinic-customers-service	Java,Spring Boot	L3	10	3

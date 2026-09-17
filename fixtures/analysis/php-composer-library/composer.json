@@ -1,0 +1,1 @@
+{"name":"example/library","autoload":{"psr-4":{"Example\\":"src/"}}}

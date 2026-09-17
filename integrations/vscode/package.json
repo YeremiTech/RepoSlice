@@ -1,0 +1,25 @@
+{
+  "name": "reposlice-vscode",
+  "displayName": "RepoSlice",
+  "description": "Local repository and workspace analysis from RepoSlice.",
+  "version": "0.4.0",
+  "publisher": "reposlice",
+  "engines": { "vscode": "^1.90.0" },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onCommand:reposlice.analyzeWorkspace"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      { "command": "reposlice.analyzeWorkspace", "title": "RepoSlice: Analyze Workspace" }
+    ],
+    "configuration": {
+      "title": "RepoSlice",
+      "properties": {
+        "reposlice.executablePath": { "type": "string", "default": "reposlice", "description": "Path to the RepoSlice CLI executable." },
+        "reposlice.workspaceId": { "type": "string", "default": "default", "description": "RepoSlice workspace id used by VS Code commands." }
+      }
+    }
+  }
+}

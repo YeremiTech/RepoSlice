@@ -1,0 +1,66 @@
+/* =========================================================
+   SHARED VIEW HEADER
+   Encabezado único para las vistas principales. Los paneles
+   conservan sus colores, acciones y contadores particulares.
+   ========================================================= */
+
+.section-header.view-section-header {
+  min-height: 76px;
+  padding: 15px 18px;
+  border-bottom: 1px solid rgba(48, 72, 108, 0.34);
+  background: transparent;
+}
+
+.view-section-header .section-header-heading {
+  gap: 14px;
+}
+
+.view-section-header .section-header-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  border: 1px solid rgba(var(--neon-violet-rgb), 0.52);
+  border-radius: 11px;
+  color: var(--neon-violet);
+  background:
+    radial-gradient(circle at 50% 32%, rgba(var(--neon-violet-rgb), 0.22), transparent 64%),
+    rgba(var(--neon-violet-rgb), 0.08);
+  box-shadow:
+    inset 0 0 16px rgba(var(--neon-violet-rgb), 0.1),
+    0 0 18px rgba(var(--neon-violet-rgb), 0.14);
+}
+
+.view-section-header .section-header-icon svg {
+  width: 26px;
+  height: 26px;
+  filter: drop-shadow(0 0 6px rgba(var(--neon-violet-rgb), 0.72));
+}
+
+.section-header.view-section-header h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 22px;
+  line-height: 1.1;
+  font-weight: 780;
+  letter-spacing: -0.025em;
+}
+
+.view-section-header .section-header-right {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 1200px) {
+  .section-header.view-section-header {
+    gap: 14px;
+    padding-inline: 15px;
+  }
+
+  .view-section-header .projects-neon-actions {
+    gap: 8px;
+  }
+
+}
