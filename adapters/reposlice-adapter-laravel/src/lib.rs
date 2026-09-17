@@ -1,7 +1,8 @@
 use reposlice_core::{
-    stable_hash, read_source_text, AnalysisContribution, Component, ComponentKind, Dependency, DependencyKind,
-    DependencyMetadata, Entrypoint, EntrypointKind, EntrypointMetadata, Evidence, EvidenceKind,
-    FrameworkAdapter, FrameworkDetection, RuntimeRequirement, ScanPolicy, SymbolMetadata, DEFAULT_MAX_SOURCE_SIZE,
+    read_source_text, stable_hash, AnalysisContribution, Component, ComponentKind, Dependency,
+    DependencyKind, DependencyMetadata, Entrypoint, EntrypointKind, EntrypointMetadata, Evidence,
+    EvidenceKind, FrameworkAdapter, FrameworkDetection, RuntimeRequirement, ScanPolicy,
+    SymbolMetadata, DEFAULT_MAX_SOURCE_SIZE,
 };
 use reposlice_parser_php::{resolve_type_reference, PhpIndex, PhpType};
 use std::collections::{BTreeMap, BTreeSet};

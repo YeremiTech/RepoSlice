@@ -1,6 +1,6 @@
 use reposlice_core::{
-    read_source_text, AnalysisContribution, Component, ComponentKind, Dependency, DependencyKind, LanguageAnalyzer,
-    ScanPolicy, DEFAULT_MAX_SOURCE_SIZE,
+    read_source_text, AnalysisContribution, Component, ComponentKind, Dependency, DependencyKind,
+    LanguageAnalyzer, ScanPolicy, DEFAULT_MAX_SOURCE_SIZE,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;

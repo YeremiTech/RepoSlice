@@ -1,12 +1,12 @@
 use reposlice_core::{
-    read_source_text, AnalysisContribution, Component, ComponentKind, Entrypoint, EntrypointKind, Evidence,
-    EvidenceKind, FrameworkAdapter, FrameworkDetection, Technology, DEFAULT_MAX_SOURCE_SIZE,
+    read_source_text, AnalysisContribution, Component, ComponentKind, Entrypoint, EntrypointKind,
+    Evidence, EvidenceKind, FrameworkAdapter, FrameworkDetection, Technology,
+    DEFAULT_MAX_SOURCE_SIZE,
 };
 use reposlice_parser_java::collect_java_files;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
-
 
 pub struct SpringAdapter;
 

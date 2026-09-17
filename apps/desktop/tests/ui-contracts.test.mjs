@@ -273,9 +273,10 @@ test('workspace integrity field contract remains defined by the graph engine', (
 test('public desktop assets exclude redundant and regenerable repository artifacts', () => {
   const sidebar = src('src/components/Sidebar.tsx');
   assert.match(sidebar, /src="\/logo\.png"/);
-  assert.ok(fs.existsSync(path.join(root, 'public', 'logo.png')), 'optimized sidebar logo must exist');
+  const publicAssets = new Set(fs.readdirSync(path.join(root, 'public')));
+  assert.ok(publicAssets.has('logo.png'), 'optimized sidebar logo must exist');
   for (const obsolete of ['Logo.png', 'Logo-4k.png', 'LogoMark-4k.png', 'favicon-256.png']) {
-    assert.equal(fs.existsSync(path.join(root, 'public', obsolete)), false, `obsolete public asset should not be committed: ${obsolete}`);
+    assert.equal(publicAssets.has(obsolete), false, `obsolete public asset should not be committed: ${obsolete}`);
   }
   assert.equal(fs.existsSync(path.join(root, 'src-tauri', 'gen', 'schemas')), false, 'Tauri schemas are regenerable and should not be committed');
   assert.equal(fs.existsSync(path.join(root, 'src-tauri', 'icons', 'android')), false, 'mobile Android icons are outside the Desktop product');

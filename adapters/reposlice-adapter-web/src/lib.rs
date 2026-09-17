@@ -1,7 +1,8 @@
 use reposlice_core::{
-    stable_hash, read_source_text, AnalysisContribution, AnalysisDiagnostic, Component, ComponentKind, FrameworkAnalysis, FrameworkSuite,
-    DiagnosticLevel, Entrypoint, EntrypointKind, EntrypointMetadata, Evidence, EvidenceKind,
-    FrameworkDetection, RuntimeRequirement, ScanPolicy, SymbolMetadata, Technology, DEFAULT_MAX_SOURCE_SIZE,
+    read_source_text, stable_hash, AnalysisContribution, AnalysisDiagnostic, Component,
+    ComponentKind, DiagnosticLevel, Entrypoint, EntrypointKind, EntrypointMetadata, Evidence,
+    EvidenceKind, FrameworkAnalysis, FrameworkDetection, FrameworkSuite, RuntimeRequirement,
+    ScanPolicy, SymbolMetadata, Technology, DEFAULT_MAX_SOURCE_SIZE,
 };
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
@@ -14,7 +15,9 @@ pub type DetectedFramework = FrameworkAnalysis;
 pub struct WebFrameworkSuite;
 
 impl FrameworkSuite for WebFrameworkSuite {
-    fn id(&self) -> &'static str { "web-frameworks" }
+    fn id(&self) -> &'static str {
+        "web-frameworks"
+    }
 
     fn analyze(&self, root: &Path, base: &[Component]) -> io::Result<Vec<FrameworkAnalysis>> {
         analyze_web_frameworks(root, base)
@@ -241,8 +244,16 @@ fn analyze_framework(
     detection: &FrameworkDetection,
 ) -> io::Result<AnalysisContribution> {
     let mut output = AnalysisContribution::default();
-    let category = if detection.name == "React" { "library" } else { "framework" };
-    let detection_kind = if detection.evidence.iter().all(|item| item.kind == EvidenceKind::Convention) {
+    let category = if detection.name == "React" {
+        "library"
+    } else {
+        "framework"
+    };
+    let detection_kind = if detection
+        .evidence
+        .iter()
+        .all(|item| item.kind == EvidenceKind::Convention)
+    {
         "INFERRED"
     } else {
         "DIRECT"
@@ -251,9 +262,15 @@ fn analyze_framework(
         category: category.into(),
         name: detection.name.clone(),
         confidence: detection.confidence,
-        classification: reposlice_core::technology_classification(category, &detection.name).1.into(),
+        classification: reposlice_core::technology_classification(category, &detection.name)
+            .1
+            .into(),
         evidence: detection.evidence.clone(),
-        detected_from: detection.evidence.iter().map(|item| item.kind.as_str().to_string()).collect(),
+        detected_from: detection
+            .evidence
+            .iter()
+            .map(|item| item.kind.as_str().to_string())
+            .collect(),
         detection_kind: detection_kind.into(),
         ..Technology::default()
     });
@@ -2152,7 +2169,11 @@ fn detect_rust_web(root: &Path, files: &[SourceFile], cargo: &str) -> FrameworkD
     }
     let detected_name = dependencies
         .iter()
-        .find(|dependency| cargo.lines().any(|line| line.trim_start().starts_with(*dependency)))
+        .find(|dependency| {
+            cargo
+                .lines()
+                .any(|line| line.trim_start().starts_with(*dependency))
+        })
         .map(|dependency| match *dependency {
             "actix-web" => "Actix Web",
             "axum" => "Axum",

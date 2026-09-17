@@ -2,15 +2,18 @@ use reposlice_capsule::{
     create_workspace_capsule, list_capsules, list_capsules_in, CapsuleSummary,
 };
 use reposlice_core::{ProjectModel, ScopedTarget, WorkspaceModel};
-use reposlice_graph::{validate_dependency_graph, validate_workspace_graph, workspace_dependency_slice, workspace_impact_slice};
+use reposlice_graph::{
+    validate_dependency_graph, validate_workspace_graph, workspace_dependency_slice,
+    workspace_impact_slice,
+};
 use reposlice_runtime::detect_runtime;
 use reposlice_verifier::{sandbox_validation_plan, verify_capsule};
 use reposlice_workspace::{
-    add_repository, clone_repository, create_workspace, delete_repository, latest_analysis_record,
-    list_repositories, list_workspaces, load_cached_workspace_model, scan_workspace_controlled,
-    scan_workspace_repository_controlled, update_managed_repository, workspace_root, AnalysisRecord,
-    RepositoryRecord, WorkspaceRecord, WorkspaceScanProgress,
-    install_local_crash_reporting,
+    add_repository, clone_repository, create_workspace, delete_repository,
+    install_local_crash_reporting, latest_analysis_record, list_repositories, list_workspaces,
+    load_cached_workspace_model, scan_workspace_controlled, scan_workspace_repository_controlled,
+    update_managed_repository, workspace_root, AnalysisRecord, RepositoryRecord, WorkspaceRecord,
+    WorkspaceScanProgress,
 };
 use serde::Serialize;
 use std::collections::{BTreeMap, VecDeque};
@@ -18,7 +21,6 @@ use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use tauri::{Emitter, Manager};
-
 
 const DESKTOP_MODEL_CACHE_LIMIT: usize = 6;
 
@@ -281,44 +283,88 @@ struct DependencySliceDto {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct EvidenceDto { kind: String, source: String, detail: String, confidence: u8 }
+struct EvidenceDto {
+    kind: String,
+    source: String,
+    detail: String,
+    confidence: u8,
+}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct FrameworkDetectionDto { name: String, confidence: u8, evidence: Vec<EvidenceDto>, actionable: bool, direct_evidence: bool }
+struct FrameworkDetectionDto {
+    name: String,
+    confidence: u8,
+    evidence: Vec<EvidenceDto>,
+    actionable: bool,
+    direct_evidence: bool,
+}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct RuntimeRequirementDto { name: String, executable: String, version_hint: Option<String>, required_by: String, confidence: u8 }
+struct RuntimeRequirementDto {
+    name: String,
+    executable: String,
+    version_hint: Option<String>,
+    required_by: String,
+    confidence: u8,
+}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct SymbolMetadataDto {
-    symbol_id: String, qualified_name: Option<String>, namespace: Option<String>, framework_kind: Option<String>,
-    attributes: Vec<(String, String)>, evidence: Vec<EvidenceDto>, confidence: u8,
+    symbol_id: String,
+    qualified_name: Option<String>,
+    namespace: Option<String>,
+    framework_kind: Option<String>,
+    attributes: Vec<(String, String)>,
+    evidence: Vec<EvidenceDto>,
+    confidence: u8,
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct EntrypointMetadataDto {
-    entrypoint_id: String, method: Option<String>, path: Option<String>, route_name: Option<String>, domain: Option<String>,
-    middleware: Vec<String>, controller: Option<String>, action: Option<String>, evidence: Vec<EvidenceDto>, confidence: u8,
+    entrypoint_id: String,
+    method: Option<String>,
+    path: Option<String>,
+    route_name: Option<String>,
+    domain: Option<String>,
+    middleware: Vec<String>,
+    controller: Option<String>,
+    action: Option<String>,
+    evidence: Vec<EvidenceDto>,
+    confidence: u8,
 }
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct DependencyMetadataDto { source_id: String, target_id: String, kind: String, evidence: Vec<EvidenceDto>, confidence: u8 }
+struct DependencyMetadataDto {
+    source_id: String,
+    target_id: String,
+    kind: String,
+    evidence: Vec<EvidenceDto>,
+    confidence: u8,
+}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct AnalysisDiagnosticDto { level: String, code: String, message: String, file: Option<String> }
+struct AnalysisDiagnosticDto {
+    level: String,
+    code: String,
+    message: String,
+    file: Option<String>,
+}
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 struct AnalysisMetadataDto {
-    framework_detections: Vec<FrameworkDetectionDto>, symbols: Vec<SymbolMetadataDto>,
-    entrypoints: Vec<EntrypointMetadataDto>, dependencies: Vec<DependencyMetadataDto>,
-    runtime_requirements: Vec<RuntimeRequirementDto>, diagnostics: Vec<AnalysisDiagnosticDto>,
+    framework_detections: Vec<FrameworkDetectionDto>,
+    symbols: Vec<SymbolMetadataDto>,
+    entrypoints: Vec<EntrypointMetadataDto>,
+    dependencies: Vec<DependencyMetadataDto>,
+    runtime_requirements: Vec<RuntimeRequirementDto>,
+    diagnostics: Vec<AnalysisDiagnosticDto>,
 }
 
 #[derive(Serialize)]
@@ -449,7 +495,12 @@ struct RuntimeCapabilitiesDto {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct RuntimeToolDto { name: String, executable: String, available: bool, version: Option<String> }
+struct RuntimeToolDto {
+    name: String,
+    executable: String,
+    available: bool,
+    version: Option<String>,
+}
 
 async fn run_blocking<T, F>(operation: F) -> Result<T, String>
 where
@@ -483,8 +534,8 @@ fn add_repository_command(
     path: String,
     state: tauri::State<'_, DesktopState>,
 ) -> Result<RepositoryRecordDto, String> {
-    let repository = add_repository(&workspace_id, Path::new(&path))
-        .map_err(|error| error.to_string())?;
+    let repository =
+        add_repository(&workspace_id, Path::new(&path)).map_err(|error| error.to_string())?;
     state.invalidate(&workspace_id)?;
     Ok(repository_record_dto(repository))
 }
@@ -631,11 +682,8 @@ fn slice_workspace_dependencies(
     project_unit_id: String,
     target: String,
 ) -> Result<Vec<DependencySliceDto>, String> {
-    let (unit_id, component_ids) = resolve_workspace_target_components(
-        &workspace,
-        &project_unit_id,
-        &target,
-    )?;
+    let (unit_id, component_ids) =
+        resolve_workspace_target_components(&workspace, &project_unit_id, &target)?;
     let starts = component_ids
         .into_iter()
         .map(|component_id| (unit_id.clone(), component_id))
@@ -663,11 +711,8 @@ fn impact_workspace_dependencies(
     project_unit_id: String,
     target: String,
 ) -> Result<Vec<DependencySliceDto>, String> {
-    let (unit_id, component_ids) = resolve_workspace_target_components(
-        &workspace,
-        &project_unit_id,
-        &target,
-    )?;
+    let (unit_id, component_ids) =
+        resolve_workspace_target_components(&workspace, &project_unit_id, &target)?;
     let starts = component_ids
         .into_iter()
         .map(|component_id| (unit_id.clone(), component_id))
@@ -710,10 +755,13 @@ fn resolve_workspace_target_components(
     if component_ids.is_empty() {
         return Err("Target project unit has no components".to_string());
     }
-    if component_ids
-        .iter()
-        .any(|component_id| !unit.model.components.iter().any(|item| item.id == *component_id))
-    {
+    if component_ids.iter().any(|component_id| {
+        !unit
+            .model
+            .components
+            .iter()
+            .any(|item| item.id == *component_id)
+    }) {
         return Err("Target references a missing component".to_string());
     }
     Ok((unit.id.clone(), component_ids))
@@ -796,7 +844,11 @@ fn project_model_dto(model: ProjectModel) -> ProjectModelDto {
                 scope: technology.scope,
                 repository_id: technology.repository_id,
                 project_unit_id: technology.project_unit_id,
-                detected_from: technology.detected_from.into_iter().map(|value| display_path(&value)).collect(),
+                detected_from: technology
+                    .detected_from
+                    .into_iter()
+                    .map(|value| display_path(&value))
+                    .collect(),
                 detection_kind: technology.detection_kind,
             })
             .collect(),
@@ -832,22 +884,96 @@ fn project_model_dto(model: ProjectModel) -> ProjectModelDto {
             })
             .collect(),
         analysis: AnalysisMetadataDto {
-            framework_detections: analysis.framework_detections.into_iter().map(|item| {
-                let actionable = item.actionable();
-                let direct_evidence = item.has_direct_evidence();
-                FrameworkDetectionDto { name: item.name, confidence: item.confidence, evidence: evidence_dtos(item.evidence), actionable, direct_evidence }
-            }).collect(),
-            symbols: analysis.symbols.into_iter().map(|item| SymbolMetadataDto { symbol_id: item.symbol_id, qualified_name: item.qualified_name, namespace: item.namespace, framework_kind: item.framework_kind, attributes: item.attributes, evidence: evidence_dtos(item.evidence), confidence: item.confidence }).collect(),
-            entrypoints: analysis.entrypoints.into_iter().map(|item| EntrypointMetadataDto { entrypoint_id: item.entrypoint_id, method: item.method, path: item.path, route_name: item.route_name, domain: item.domain, middleware: item.middleware, controller: item.controller, action: item.action, evidence: evidence_dtos(item.evidence), confidence: item.confidence }).collect(),
-            dependencies: analysis.dependencies.into_iter().map(|item| DependencyMetadataDto { source_id: item.source_id, target_id: item.target_id, kind: item.kind, evidence: evidence_dtos(item.evidence), confidence: item.confidence }).collect(),
-            runtime_requirements: analysis.runtime_requirements.into_iter().map(|item| RuntimeRequirementDto { name: item.name, executable: item.executable, version_hint: item.version_hint, required_by: item.required_by, confidence: item.confidence }).collect(),
-            diagnostics: analysis.diagnostics.into_iter().map(|item| AnalysisDiagnosticDto { level: item.level.as_str().into(), code: item.code, message: item.message, file: item.file.map(|value| display_path(&value)) }).collect(),
+            framework_detections: analysis
+                .framework_detections
+                .into_iter()
+                .map(|item| {
+                    let actionable = item.actionable();
+                    let direct_evidence = item.has_direct_evidence();
+                    FrameworkDetectionDto {
+                        name: item.name,
+                        confidence: item.confidence,
+                        evidence: evidence_dtos(item.evidence),
+                        actionable,
+                        direct_evidence,
+                    }
+                })
+                .collect(),
+            symbols: analysis
+                .symbols
+                .into_iter()
+                .map(|item| SymbolMetadataDto {
+                    symbol_id: item.symbol_id,
+                    qualified_name: item.qualified_name,
+                    namespace: item.namespace,
+                    framework_kind: item.framework_kind,
+                    attributes: item.attributes,
+                    evidence: evidence_dtos(item.evidence),
+                    confidence: item.confidence,
+                })
+                .collect(),
+            entrypoints: analysis
+                .entrypoints
+                .into_iter()
+                .map(|item| EntrypointMetadataDto {
+                    entrypoint_id: item.entrypoint_id,
+                    method: item.method,
+                    path: item.path,
+                    route_name: item.route_name,
+                    domain: item.domain,
+                    middleware: item.middleware,
+                    controller: item.controller,
+                    action: item.action,
+                    evidence: evidence_dtos(item.evidence),
+                    confidence: item.confidence,
+                })
+                .collect(),
+            dependencies: analysis
+                .dependencies
+                .into_iter()
+                .map(|item| DependencyMetadataDto {
+                    source_id: item.source_id,
+                    target_id: item.target_id,
+                    kind: item.kind,
+                    evidence: evidence_dtos(item.evidence),
+                    confidence: item.confidence,
+                })
+                .collect(),
+            runtime_requirements: analysis
+                .runtime_requirements
+                .into_iter()
+                .map(|item| RuntimeRequirementDto {
+                    name: item.name,
+                    executable: item.executable,
+                    version_hint: item.version_hint,
+                    required_by: item.required_by,
+                    confidence: item.confidence,
+                })
+                .collect(),
+            diagnostics: analysis
+                .diagnostics
+                .into_iter()
+                .map(|item| AnalysisDiagnosticDto {
+                    level: item.level.as_str().into(),
+                    code: item.code,
+                    message: item.message,
+                    file: item.file.map(|value| display_path(&value)),
+                })
+                .collect(),
         },
     }
 }
 
 fn evidence_dtos(values: Vec<reposlice_core::Evidence>) -> Vec<EvidenceDto> {
-    values.into_iter().map(|item| EvidenceDto { kind: item.kind.as_str().into(), source: display_path(&item.source), detail: item.detail, confidence: item.confidence }).collect()
+    values
+        .into_iter()
+        .map(|item| EvidenceDto {
+            kind: item.kind.as_str().into(),
+            source: display_path(&item.source),
+            detail: item.detail,
+            confidence: item.confidence,
+        })
+        .collect()
 }
 
 #[tauri::command]
@@ -927,7 +1053,16 @@ fn detect_runtime_command() -> Result<RuntimeCapabilitiesDto, String> {
         python: runtime.python,
         php: runtime.php,
         composer: runtime.composer,
-        tools: runtime.tools.into_iter().map(|tool| RuntimeToolDto { name: tool.name, executable: tool.executable, available: tool.available, version: tool.version }).collect(),
+        tools: runtime
+            .tools
+            .into_iter()
+            .map(|tool| RuntimeToolDto {
+                name: tool.name,
+                executable: tool.executable,
+                available: tool.available,
+                version: tool.version,
+            })
+            .collect(),
     })
 }
 
@@ -1006,19 +1141,23 @@ fn analysis_record_dto(record: AnalysisRecord) -> AnalysisRecordDto {
 }
 
 fn repository_dto(repository: reposlice_core::Repository, workspace_id: &str) -> RepositoryDto {
-    let audit_units = repository.project_units.iter().map(|unit| {
-        let report = validate_dependency_graph(&unit.model);
-        UnitGraphAuditDto {
-            project_unit_id: unit.id.clone(),
-            project_unit_name: unit.name.clone(),
-            passed: report.passed(),
-            clean: report.is_clean(),
-            missing_sources: report.missing_sources.into_iter().collect(),
-            missing_targets: report.missing_targets.into_iter().collect(),
-            self_dependencies: report.self_dependencies.len(),
-            cycles: report.cycles,
-        }
-    }).collect::<Vec<_>>();
+    let audit_units = repository
+        .project_units
+        .iter()
+        .map(|unit| {
+            let report = validate_dependency_graph(&unit.model);
+            UnitGraphAuditDto {
+                project_unit_id: unit.id.clone(),
+                project_unit_name: unit.name.clone(),
+                passed: report.passed(),
+                clean: report.is_clean(),
+                missing_sources: report.missing_sources.into_iter().collect(),
+                missing_targets: report.missing_targets.into_iter().collect(),
+                self_dependencies: report.self_dependencies.len(),
+                cycles: report.cycles,
+            }
+        })
+        .collect::<Vec<_>>();
     let analysis = latest_analysis_record(workspace_id, &repository.id)
         .ok()
         .flatten()
@@ -1035,46 +1174,68 @@ fn repository_dto(repository: reposlice_core::Repository, workspace_id: &str) ->
             commit: git.commit,
             remote: git.remote,
         }),
-        project_units: repository.project_units.into_iter().map(|unit| ProjectUnitDto {
-            id: unit.id,
-            repository_id: unit.repository_id,
-            root: display_path(&unit.root),
-            name: unit.name,
-            role: unit.role.as_str().to_string(),
-            model: project_model_dto(unit.model),
-            http_calls: unit.http_calls.into_iter().map(|call| HttpCallDto {
-                method: call.method,
-                path: call.path,
-                origin: call.origin,
-                component_id: call.component_id,
-                file: display_path(&call.file),
-                evidence: call.evidence,
-            }).collect(),
-        }).collect(),
-        audit: RepositoryAuditDto { analysis, units: audit_units },
+        project_units: repository
+            .project_units
+            .into_iter()
+            .map(|unit| ProjectUnitDto {
+                id: unit.id,
+                repository_id: unit.repository_id,
+                root: display_path(&unit.root),
+                name: unit.name,
+                role: unit.role.as_str().to_string(),
+                model: project_model_dto(unit.model),
+                http_calls: unit
+                    .http_calls
+                    .into_iter()
+                    .map(|call| HttpCallDto {
+                        method: call.method,
+                        path: call.path,
+                        origin: call.origin,
+                        component_id: call.component_id,
+                        file: display_path(&call.file),
+                        evidence: call.evidence,
+                    })
+                    .collect(),
+            })
+            .collect(),
+        audit: RepositoryAuditDto {
+            analysis,
+            units: audit_units,
+        },
     }
 }
 
 fn workspace_model_dto(workspace: WorkspaceModel) -> WorkspaceModelDto {
     let graph = validate_workspace_graph(&workspace);
-    let WorkspaceModel { id, name, repositories, cross_project_dependencies } = workspace;
-    let repositories = repositories.into_iter().map(|repository| repository_dto(repository, &id)).collect();
+    let WorkspaceModel {
+        id,
+        name,
+        repositories,
+        cross_project_dependencies,
+    } = workspace;
+    let repositories = repositories
+        .into_iter()
+        .map(|repository| repository_dto(repository, &id))
+        .collect();
     WorkspaceModelDto {
         id,
         name,
         repositories,
-        cross_project_dependencies: cross_project_dependencies.into_iter().map(|dependency| CrossProjectDependencyDto {
-            source_repository_id: dependency.source_repository_id,
-            source_project_unit_id: dependency.source_project_unit_id,
-            source_component_id: dependency.source_component_id,
-            target_repository_id: dependency.target_repository_id,
-            target_project_unit_id: dependency.target_project_unit_id,
-            target_entrypoint_id: dependency.target_entrypoint_id,
-            target_component_id: dependency.target_component_id,
-            kind: dependency.kind.as_str().to_string(),
-            evidence: dependency.evidence,
-            confidence: dependency.confidence,
-        }).collect(),
+        cross_project_dependencies: cross_project_dependencies
+            .into_iter()
+            .map(|dependency| CrossProjectDependencyDto {
+                source_repository_id: dependency.source_repository_id,
+                source_project_unit_id: dependency.source_project_unit_id,
+                source_component_id: dependency.source_component_id,
+                target_repository_id: dependency.target_repository_id,
+                target_project_unit_id: dependency.target_project_unit_id,
+                target_entrypoint_id: dependency.target_entrypoint_id,
+                target_component_id: dependency.target_component_id,
+                kind: dependency.kind.as_str().to_string(),
+                evidence: dependency.evidence,
+                confidence: dependency.confidence,
+            })
+            .collect(),
         graph_integrity: WorkspaceGraphIntegrityDto {
             passed: graph.passed(),
             error_count: graph.error_count(),
@@ -1092,7 +1253,11 @@ fn repository_origin(path: &str) -> String {
     let candidate = Path::new(path);
     let managed = fs_canonical_or_original(&managed_root);
     let target = fs_canonical_or_original(candidate);
-    if target.starts_with(&managed) { "clone".to_string() } else { "local".to_string() }
+    if target.starts_with(&managed) {
+        "clone".to_string()
+    } else {
+        "local".to_string()
+    }
 }
 
 fn fs_canonical_or_original(path: &Path) -> std::path::PathBuf {
@@ -1195,6 +1360,9 @@ mod tests {
     #[test]
     fn display_path_removes_windows_extended_length_prefix() {
         assert_eq!(display_path(r"\\?\C:\repos\demo"), r"C:\repos\demo");
-        assert_eq!(display_path(r"\\?\UNC\server\share\demo"), r"\\server\share\demo");
+        assert_eq!(
+            display_path(r"\\?\UNC\server\share\demo"),
+            r"\\server\share\demo"
+        );
     }
 }

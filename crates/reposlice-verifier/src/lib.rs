@@ -22,7 +22,9 @@ impl VerificationReport {
     }
 
     pub fn readiness_score(&self) -> u8 {
-        if self.checks.is_empty() { return 0; }
+        if self.checks.is_empty() {
+            return 0;
+        }
         let passed = self.checks.iter().filter(|check| check.passed).count();
         ((passed * 100) / self.checks.len()).min(100) as u8
     }
@@ -75,8 +77,7 @@ pub fn verify_capsule(root: &Path) -> io::Result<VerificationReport> {
         .and_then(|value| value.parse::<usize>().ok());
     let target = manifest_value(&content, "target", "value");
     let declared_fingerprint = manifest_value(&content, "integrity", "source_fingerprint");
-    let declared_payload_fingerprint =
-        manifest_value(&content, "integrity", "payload_fingerprint");
+    let declared_payload_fingerprint = manifest_value(&content, "integrity", "payload_fingerprint");
     let declared_source_sha256 = manifest_value(&content, "integrity", "source_sha256");
     let declared_payload_sha256 = manifest_value(&content, "integrity", "payload_sha256");
     let declared_source_root = manifest_value(&content, "source", "root");
@@ -142,8 +143,7 @@ pub fn verify_capsule(root: &Path) -> io::Result<VerificationReport> {
                     == Some(payload_inspection.fingerprint.as_str()),
                 detail: format!(
                     "declared {}, found {}",
-                    declared_payload_fingerprint
-                        .unwrap_or_else(|| "missing".to_string()),
+                    declared_payload_fingerprint.unwrap_or_else(|| "missing".to_string()),
                     if payload_inspection.fingerprint.is_empty() {
                         "unavailable".to_string()
                     } else {
@@ -219,21 +219,40 @@ pub fn verify_capsule(root: &Path) -> io::Result<VerificationReport> {
 }
 
 pub fn sandbox_validation_plan(root: &Path) -> io::Result<Vec<SandboxValidationPlan>> {
-    let source = if regular_directory(&root.join("source")) { root.join("source") } else { root.join("repositories") };
-    if !source.is_dir() { return Ok(Vec::new()); }
+    let source = if regular_directory(&root.join("source")) {
+        root.join("source")
+    } else {
+        root.join("repositories")
+    };
+    if !source.is_dir() {
+        return Ok(Vec::new());
+    }
     let mut manifests = Vec::new();
     collect_manifests(&source, &source, &mut manifests)?;
     manifests.sort();
     manifests.dedup();
     let mut plans = Vec::new();
     for relative in manifests {
-        let file_name = Path::new(&relative).file_name().and_then(|value| value.to_str()).unwrap_or("");
+        let file_name = Path::new(&relative)
+            .file_name()
+            .and_then(|value| value.to_str())
+            .unwrap_or("");
         let (runtime, command, network_required) = match file_name {
             "pom.xml" => ("Java/Maven", "mvn -o -DskipTests package", false),
-            "build.gradle" | "build.gradle.kts" => ("Java/Gradle", "gradle --offline build -x test", false),
-            "package.json" => ("Node.js", "npm test --if-present && npm run build --if-present", true),
+            "build.gradle" | "build.gradle.kts" => {
+                ("Java/Gradle", "gradle --offline build -x test", false)
+            }
+            "package.json" => (
+                "Node.js",
+                "npm test --if-present && npm run build --if-present",
+                true,
+            ),
             "Cargo.toml" => ("Rust", "cargo check --locked --offline", false),
-            "composer.json" => ("PHP/Composer", "composer validate --no-check-publish", false),
+            "composer.json" => (
+                "PHP/Composer",
+                "composer validate --no-check-publish",
+                false,
+            ),
             "requirements.txt" | "pyproject.toml" => ("Python", "python -m compileall .", false),
             _ => continue,
         };
@@ -258,13 +277,33 @@ fn collect_manifests(root: &Path, directory: &Path, manifests: &mut Vec<String>)
     for entry in entries {
         let path = entry.path();
         let metadata = fs::symlink_metadata(&path)?;
-        if metadata.file_type().is_symlink() { continue; }
+        if metadata.file_type().is_symlink() {
+            continue;
+        }
         if metadata.is_dir() {
             collect_manifests(root, &path, manifests)?;
         } else if metadata.is_file() {
-            let name = path.file_name().and_then(|value| value.to_str()).unwrap_or("");
-            if matches!(name, "pom.xml" | "build.gradle" | "build.gradle.kts" | "package.json" | "Cargo.toml" | "composer.json" | "requirements.txt" | "pyproject.toml") {
-                manifests.push(path.strip_prefix(root).unwrap_or(&path).to_string_lossy().replace('\\', "/"));
+            let name = path
+                .file_name()
+                .and_then(|value| value.to_str())
+                .unwrap_or("");
+            if matches!(
+                name,
+                "pom.xml"
+                    | "build.gradle"
+                    | "build.gradle.kts"
+                    | "package.json"
+                    | "Cargo.toml"
+                    | "composer.json"
+                    | "requirements.txt"
+                    | "pyproject.toml"
+            ) {
+                manifests.push(
+                    path.strip_prefix(root)
+                        .unwrap_or(&path)
+                        .to_string_lossy()
+                        .replace('\\', "/"),
+                );
             }
         }
     }
@@ -447,10 +486,8 @@ mod tests {
 
     #[test]
     fn detects_payload_drift_outside_source_tree() {
-        let root = std::env::temp_dir().join(format!(
-            "reposlice-verifier-payload-{}",
-            std::process::id()
-        ));
+        let root =
+            std::env::temp_dir().join(format!("reposlice-verifier-payload-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
         fs::create_dir_all(root.join("source")).unwrap();
         fs::create_dir_all(root.join("environment")).unwrap();
@@ -481,10 +518,8 @@ mod tests {
 
     #[test]
     fn rejects_absolute_source_roots() {
-        let root = std::env::temp_dir().join(format!(
-            "reposlice-verifier-root-{}",
-            std::process::id()
-        ));
+        let root =
+            std::env::temp_dir().join(format!("reposlice-verifier-root-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
         fs::create_dir_all(root.join("source")).unwrap();
         fs::create_dir_all(root.join("environment")).unwrap();
@@ -513,10 +548,8 @@ mod tests {
     #[cfg(unix)]
     #[test]
     fn reports_symlinks_without_following_them() {
-        let root = std::env::temp_dir().join(format!(
-            "reposlice-verifier-symlink-{}",
-            std::process::id()
-        ));
+        let root =
+            std::env::temp_dir().join(format!("reposlice-verifier-symlink-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
         fs::create_dir_all(root.join("source")).unwrap();
         fs::create_dir_all(root.join("environment")).unwrap();
@@ -540,10 +573,8 @@ mod tests {
     }
     #[test]
     fn verifies_declared_sha256_and_detects_sha_drift() {
-        let root = std::env::temp_dir().join(format!(
-            "reposlice-verifier-sha256-{}",
-            std::process::id()
-        ));
+        let root =
+            std::env::temp_dir().join(format!("reposlice-verifier-sha256-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
         fs::create_dir_all(root.join("source")).unwrap();
         fs::create_dir_all(root.join("environment")).unwrap();

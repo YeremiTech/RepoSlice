@@ -1,5 +1,6 @@
 use reposlice_core::{
-    sha256_hex, slugify, stable_hash, GitMetadata, ProjectUnit, Repository, ScanPolicy, WorkspaceModel,
+    sha256_hex, slugify, stable_hash, GitMetadata, ProjectUnit, Repository, ScanPolicy,
+    WorkspaceModel,
 };
 use reposlice_graph::{
     match_cross_project_dependencies, validate_dependency_graph, validate_workspace_graph,
@@ -31,7 +32,6 @@ struct WorkspaceModelCache {
     model_sha256: String,
     model: WorkspaceModel,
 }
-
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WorkspaceScanProgress {
@@ -129,7 +129,6 @@ pub struct AnalysisRecord {
     pub message: String,
 }
 
-
 static CRASH_REPORTING_INSTALLED: OnceLock<()> = OnceLock::new();
 
 pub fn install_local_crash_reporting() {
@@ -139,10 +138,23 @@ pub fn install_local_crash_reporting() {
     CRASH_REPORTING_INSTALLED.get_or_init(|| {
         let previous = std::panic::take_hook();
         std::panic::set_hook(Box::new(move |info| {
-            let payload = info.payload().downcast_ref::<&str>().copied()
+            let payload = info
+                .payload()
+                .downcast_ref::<&str>()
+                .copied()
                 .or_else(|| info.payload().downcast_ref::<String>().map(String::as_str))
                 .unwrap_or("panic");
-            let location = info.location().map(|location| format!("{}:{}:{}", location.file(), location.line(), location.column())).unwrap_or_else(|| "unknown".to_string());
+            let location = info
+                .location()
+                .map(|location| {
+                    format!(
+                        "{}:{}:{}",
+                        location.file(),
+                        location.line(),
+                        location.column()
+                    )
+                })
+                .unwrap_or_else(|| "unknown".to_string());
             let report = serde_json::json!({
                 "timestampMs": epoch_millis(),
                 "version": env!("CARGO_PKG_VERSION"),
@@ -510,7 +522,13 @@ pub fn scan_workspace_repository_with_registry(
     repository_id: &str,
     registry: &AnalyzerRegistry,
 ) -> anyhow::Result<WorkspaceModel> {
-    scan_workspace_incremental(workspace_id, Some(repository_id), registry, |_| {}, || false)
+    scan_workspace_incremental(
+        workspace_id,
+        Some(repository_id),
+        registry,
+        |_| {},
+        || false,
+    )
 }
 
 pub fn scan_workspace_repository_controlled<F, C>(
@@ -611,7 +629,9 @@ where
     let mut repositories = Vec::with_capacity(records.len());
     for (index, record) in records.iter().enumerate() {
         if should_cancel() {
-            return Err(io::Error::new(io::ErrorKind::Interrupted, "Analysis was cancelled").into());
+            return Err(
+                io::Error::new(io::ErrorKind::Interrupted, "Analysis was cancelled").into(),
+            );
         }
         let current_state = repository_state_signature(record)?;
         let force = force_repository_id == Some(record.id.as_str());
@@ -627,7 +647,12 @@ where
             repository_name: Some(record.name.clone()),
             completed_repositories: index,
             total_repositories,
-            stage: if cached_is_current { "cache" } else { "scanning" }.to_string(),
+            stage: if cached_is_current {
+                "cache"
+            } else {
+                "scanning"
+            }
+            .to_string(),
             reused_cache: cached_is_current,
         });
         let repository = if cached_is_current {
@@ -640,7 +665,9 @@ where
             scan_repository_with_registry(record, registry)?
         };
         if should_cancel() {
-            return Err(io::Error::new(io::ErrorKind::Interrupted, "Analysis was cancelled").into());
+            return Err(
+                io::Error::new(io::ErrorKind::Interrupted, "Analysis was cancelled").into(),
+            );
         }
         repository_states.insert(record.id.clone(), repository_state_signature(record)?);
         repositories.push(repository);
@@ -812,7 +839,14 @@ fn repository_state_signature(record: &RepositoryRecord) -> io::Result<String> {
         // tracked, staged and untracked edits all invalidate the repository model deterministically.
         let diff = git_output(
             root,
-            &["diff", "--no-ext-diff", "--no-textconv", "--binary", "HEAD", "--"],
+            &[
+                "diff",
+                "--no-ext-diff",
+                "--no-textconv",
+                "--binary",
+                "HEAD",
+                "--",
+            ],
         )
         .unwrap_or_default();
         let filesystem = filesystem_state_signature(root)?;
@@ -878,7 +912,9 @@ fn collect_filesystem_state(
 
 fn workspace_model_sha256(model: &WorkspaceModel) -> io::Result<String> {
     let bytes = serde_json::to_vec(model).map_err(|error| {
-        io::Error::other(format!("Workspace model could not be serialized for integrity validation: {error}"))
+        io::Error::other(format!(
+            "Workspace model could not be serialized for integrity validation: {error}"
+        ))
     })?;
     Ok(format!("sha256:{}", sha256_hex(&bytes)))
 }
@@ -967,23 +1003,72 @@ fn analysis_record_from_repository(
         .collect::<Vec<_>>();
     let graph_passed = reports.iter().all(|report| report.passed());
     let graph_clean = reports.iter().all(|report| report.is_clean());
-    let missing_sources = reports.iter().map(|report| report.missing_sources.len()).sum();
-    let missing_targets = reports.iter().map(|report| report.missing_targets.len()).sum();
-    let self_dependencies = reports.iter().map(|report| report.self_dependencies.len()).sum();
+    let missing_sources = reports
+        .iter()
+        .map(|report| report.missing_sources.len())
+        .sum();
+    let missing_targets = reports
+        .iter()
+        .map(|report| report.missing_targets.len())
+        .sum();
+    let self_dependencies = reports
+        .iter()
+        .map(|report| report.self_dependencies.len())
+        .sum();
     let cycles = reports.iter().map(|report| report.cycles.len()).sum();
-    let diagnostics_info = repository.project_units.iter().map(|unit| {
-        unit.model.analysis.diagnostics.iter().filter(|item| item.level.as_str() == "info").count()
-    }).sum();
-    let diagnostics_warning = repository.project_units.iter().map(|unit| {
-        unit.model.analysis.diagnostics.iter().filter(|item| item.level.as_str() == "warning").count()
-    }).sum();
-    let diagnostics_error = repository.project_units.iter().map(|unit| {
-        unit.model.analysis.diagnostics.iter().filter(|item| item.level.as_str() == "error").count()
-    }).sum();
-    let framework_detections = repository.project_units.iter().map(|unit| unit.model.analysis.framework_detections.len()).sum();
-    let actionable_frameworks = repository.project_units.iter().map(|unit| {
-        unit.model.analysis.framework_detections.iter().filter(|item| item.actionable_with(registry.detection_policy())).count()
-    }).sum();
+    let diagnostics_info = repository
+        .project_units
+        .iter()
+        .map(|unit| {
+            unit.model
+                .analysis
+                .diagnostics
+                .iter()
+                .filter(|item| item.level.as_str() == "info")
+                .count()
+        })
+        .sum();
+    let diagnostics_warning = repository
+        .project_units
+        .iter()
+        .map(|unit| {
+            unit.model
+                .analysis
+                .diagnostics
+                .iter()
+                .filter(|item| item.level.as_str() == "warning")
+                .count()
+        })
+        .sum();
+    let diagnostics_error = repository
+        .project_units
+        .iter()
+        .map(|unit| {
+            unit.model
+                .analysis
+                .diagnostics
+                .iter()
+                .filter(|item| item.level.as_str() == "error")
+                .count()
+        })
+        .sum();
+    let framework_detections = repository
+        .project_units
+        .iter()
+        .map(|unit| unit.model.analysis.framework_detections.len())
+        .sum();
+    let actionable_frameworks = repository
+        .project_units
+        .iter()
+        .map(|unit| {
+            unit.model
+                .analysis
+                .framework_detections
+                .iter()
+                .filter(|item| item.actionable_with(registry.detection_policy()))
+                .count()
+        })
+        .sum();
     let status = if !graph_passed || diagnostics_error > 0 {
         AnalysisStatus::Partial
     } else if !graph_clean || diagnostics_warning > 0 {
@@ -996,7 +1081,8 @@ fn analysis_record_from_repository(
         AnalysisStatus::CompletedWithWarnings => "Analysis completed with non-blocking warnings",
         AnalysisStatus::Partial => "Analysis completed with integrity errors or error diagnostics",
         AnalysisStatus::Failed => "Analysis failed",
-    }.to_string();
+    }
+    .to_string();
     AnalysisRecord {
         workspace_id: repository_record.workspace_id.clone(),
         repository_id: repository_record.id.clone(),
@@ -1010,11 +1096,27 @@ fn analysis_record_from_repository(
         branch: repository.git.as_ref().and_then(|git| git.branch.clone()),
         commit: repository.git.as_ref().and_then(|git| git.commit.clone()),
         model_fingerprint: repository_fingerprint(repository),
-        files: repository.project_units.iter().map(|unit| unit.model.files).sum(),
+        files: repository
+            .project_units
+            .iter()
+            .map(|unit| unit.model.files)
+            .sum(),
         project_units: repository.project_units.len(),
-        components: repository.project_units.iter().map(|unit| unit.model.components.len()).sum(),
-        entrypoints: repository.project_units.iter().map(|unit| unit.model.entrypoints.len()).sum(),
-        dependencies: repository.project_units.iter().map(|unit| unit.model.dependencies.len()).sum(),
+        components: repository
+            .project_units
+            .iter()
+            .map(|unit| unit.model.components.len())
+            .sum(),
+        entrypoints: repository
+            .project_units
+            .iter()
+            .map(|unit| unit.model.entrypoints.len())
+            .sum(),
+        dependencies: repository
+            .project_units
+            .iter()
+            .map(|unit| unit.model.dependencies.len())
+            .sum(),
         cross_project_dependencies: 0,
         graph_passed,
         graph_clean,
@@ -1095,18 +1197,41 @@ fn persist_cross_project_counts(workspace: &WorkspaceModel) -> io::Result<()> {
 fn repository_fingerprint(repository: &Repository) -> String {
     let mut rows = Vec::new();
     for unit in &repository.project_units {
-        rows.push(format!("unit:{}:{}:{}", unit.id, unit.model.files, unit.model.compatibility.as_str()));
+        rows.push(format!(
+            "unit:{}:{}:{}",
+            unit.id,
+            unit.model.files,
+            unit.model.compatibility.as_str()
+        ));
         for technology in &unit.model.technologies {
-            rows.push(format!("technology:{}:{}:{}", technology.category, technology.name, technology.confidence));
+            rows.push(format!(
+                "technology:{}:{}:{}",
+                technology.category, technology.name, technology.confidence
+            ));
         }
         for component in &unit.model.components {
-            rows.push(format!("component:{}:{}:{}", component.id, component.kind.as_str(), component.file));
+            rows.push(format!(
+                "component:{}:{}:{}",
+                component.id,
+                component.kind.as_str(),
+                component.file
+            ));
         }
         for entrypoint in &unit.model.entrypoints {
-            rows.push(format!("entrypoint:{}:{}:{}", entrypoint.id, entrypoint.kind.as_str(), entrypoint.component_id));
+            rows.push(format!(
+                "entrypoint:{}:{}:{}",
+                entrypoint.id,
+                entrypoint.kind.as_str(),
+                entrypoint.component_id
+            ));
         }
         for dependency in &unit.model.dependencies {
-            rows.push(format!("dependency:{}:{}:{}", dependency.source_id, dependency.target_id, dependency.kind.as_str()));
+            rows.push(format!(
+                "dependency:{}:{}:{}",
+                dependency.source_id,
+                dependency.target_id,
+                dependency.kind.as_str()
+            ));
         }
     }
     rows.sort();
@@ -1127,7 +1252,10 @@ fn epoch_millis() -> u64 {
 }
 
 fn analysis_records_dir(workspace_id: &str) -> PathBuf {
-    workspace_root().join("workspaces").join(workspace_id).join("analysis")
+    workspace_root()
+        .join("workspaces")
+        .join(workspace_id)
+        .join("analysis")
 }
 
 fn analysis_record_path(workspace_id: &str, repository_id: &str) -> PathBuf {
@@ -1156,7 +1284,10 @@ fn write_analysis_record(record: &AnalysisRecord) -> io::Result<()> {
         ("components", record.components.to_string()),
         ("entrypoints", record.entrypoints.to_string()),
         ("dependencies", record.dependencies.to_string()),
-        ("cross_project_dependencies", record.cross_project_dependencies.to_string()),
+        (
+            "cross_project_dependencies",
+            record.cross_project_dependencies.to_string(),
+        ),
         ("graph_passed", record.graph_passed.to_string()),
         ("graph_clean", record.graph_clean.to_string()),
         ("missing_sources", record.missing_sources.to_string()),
@@ -1164,15 +1295,29 @@ fn write_analysis_record(record: &AnalysisRecord) -> io::Result<()> {
         ("self_dependencies", record.self_dependencies.to_string()),
         ("cycles", record.cycles.to_string()),
         ("diagnostics_info", record.diagnostics_info.to_string()),
-        ("diagnostics_warning", record.diagnostics_warning.to_string()),
+        (
+            "diagnostics_warning",
+            record.diagnostics_warning.to_string(),
+        ),
         ("diagnostics_error", record.diagnostics_error.to_string()),
-        ("framework_detections", record.framework_detections.to_string()),
-        ("actionable_frameworks", record.actionable_frameworks.to_string()),
+        (
+            "framework_detections",
+            record.framework_detections.to_string(),
+        ),
+        (
+            "actionable_frameworks",
+            record.actionable_frameworks.to_string(),
+        ),
         ("message", record.message.clone()),
     ];
-    atomic_write(&path, &values.into_iter().map(|(key, value)| {
-        format!("{key}={}", normalize_record_value(&value))
-    }).collect::<Vec<_>>().join("\n"))
+    atomic_write(
+        &path,
+        &values
+            .into_iter()
+            .map(|(key, value)| format!("{key}={}", normalize_record_value(&value)))
+            .collect::<Vec<_>>()
+            .join("\n"),
+    )
 }
 
 fn read_analysis_record_file(path: &Path) -> io::Result<Option<AnalysisRecord>> {
@@ -1181,7 +1326,10 @@ fn read_analysis_record_file(path: &Path) -> io::Result<Option<AnalysisRecord>> 
         Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(None),
         Err(error) => return Err(error),
     };
-    let fields = content.lines().filter_map(|line| line.split_once('=')).collect::<std::collections::BTreeMap<_, _>>();
+    let fields = content
+        .lines()
+        .filter_map(|line| line.split_once('='))
+        .collect::<std::collections::BTreeMap<_, _>>();
     let value = |key: &str| fields.get(key).copied().unwrap_or("");
     let parse_u64 = |key: &str| value(key).parse::<u64>().unwrap_or(0);
     let parse_usize = |key: &str| value(key).parse::<usize>().unwrap_or(0);
@@ -1225,7 +1373,12 @@ fn read_analysis_record_file(path: &Path) -> io::Result<Option<AnalysisRecord>> 
 }
 
 fn normalize_record_value(value: &str) -> String {
-    value.replace('\n', " ").replace('\r', " ").replace('=', ":").trim().to_string()
+    value
+        .replace('\n', " ")
+        .replace('\r', " ")
+        .replace('=', ":")
+        .trim()
+        .to_string()
 }
 
 fn optional_record_value(value: &str) -> Option<String> {
@@ -1629,7 +1782,10 @@ pub fn update_managed_repository(
         .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Repository was not found"))?;
     let repositories_root = workspace_root().join("repositories");
     let managed_root = fs::canonicalize(&repositories_root).map_err(|_| {
-        io::Error::new(io::ErrorKind::InvalidInput, "Managed repository root was not found")
+        io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "Managed repository root was not found",
+        )
     })?;
     let target = fs::canonicalize(&record.path)?;
     if target == managed_root || !target.starts_with(&managed_root) {
@@ -1639,10 +1795,16 @@ pub fn update_managed_repository(
         ));
     }
     if git_output(&target, &["rev-parse", "--is-inside-work-tree"]).as_deref() != Some("true") {
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "Repository is not a Git worktree"));
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "Repository is not a Git worktree",
+        ));
     }
-    let status = git_output(&target, &["status", "--porcelain=v1", "--untracked-files=all"])
-        .unwrap_or_default();
+    let status = git_output(
+        &target,
+        &["status", "--porcelain=v1", "--untracked-files=all"],
+    )
+    .unwrap_or_default();
     if !status.is_empty() {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,
@@ -1879,8 +2041,14 @@ mod tests {
         fs::write(repo_a.join("changed.txt"), "changed").unwrap();
         let refreshed = scan_workspace_repository(&workspace.id, &registered_a.id).unwrap();
         assert_eq!(refreshed.repositories.len(), 2);
-        assert!(refreshed.repositories.iter().any(|repo| repo.id == registered_a.id));
-        assert!(refreshed.repositories.iter().any(|repo| repo.id == registered_b.id));
+        assert!(refreshed
+            .repositories
+            .iter()
+            .any(|repo| repo.id == registered_a.id));
+        assert!(refreshed
+            .repositories
+            .iter()
+            .any(|repo| repo.id == registered_b.id));
 
         let cached = load_cached_workspace_model(&workspace.id)
             .unwrap()
@@ -1899,10 +2067,14 @@ mod tests {
         let workspace = create_workspace("Cache Workspace").unwrap();
         add_repository(&workspace.id, &repo).unwrap();
         scan_workspace(&workspace.id).unwrap();
-        assert!(load_cached_workspace_model(&workspace.id).unwrap().is_some());
+        assert!(load_cached_workspace_model(&workspace.id)
+            .unwrap()
+            .is_some());
 
         fs::write(repo.join("README.md"), "a longer v2 payload").unwrap();
-        assert!(load_cached_workspace_model(&workspace.id).unwrap().is_none());
+        assert!(load_cached_workspace_model(&workspace.id)
+            .unwrap()
+            .is_none());
     }
 
     #[test]
@@ -1972,7 +2144,9 @@ mod tests {
         add_repository(&workspace.id, &repo).unwrap();
         let error = scan_workspace_controlled(&workspace.id, |_| {}, || true).unwrap_err();
         assert!(error.to_string().contains("Analysis was cancelled"));
-        assert!(load_cached_workspace_model(&workspace.id).unwrap().is_none());
+        assert!(load_cached_workspace_model(&workspace.id)
+            .unwrap()
+            .is_none());
     }
 
     #[test]
@@ -1998,8 +2172,12 @@ mod tests {
         )
         .unwrap_err();
 
-        assert!(error.to_string().contains("changed while analysis was running"));
-        assert!(load_cached_workspace_model(&workspace.id).unwrap().is_none());
+        assert!(error
+            .to_string()
+            .contains("changed while analysis was running"));
+        assert!(load_cached_workspace_model(&workspace.id)
+            .unwrap()
+            .is_none());
     }
 
     #[test]
@@ -2017,11 +2195,12 @@ mod tests {
         let path = workspace_model_cache_path(&workspace.id);
         let mut cache: serde_json::Value =
             serde_json::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
-        cache["model"]["repositories"][0]["name"] =
-            serde_json::Value::String("tampered".into());
+        cache["model"]["repositories"][0]["name"] = serde_json::Value::String("tampered".into());
         fs::write(&path, serde_json::to_string(&cache).unwrap()).unwrap();
 
-        assert!(load_cached_workspace_model(&workspace.id).unwrap().is_none());
+        assert!(load_cached_workspace_model(&workspace.id)
+            .unwrap()
+            .is_none());
     }
 
     #[test]
@@ -2056,7 +2235,9 @@ mod tests {
         fs::create_dir_all(path.parent().unwrap()).unwrap();
         fs::write(&path, "{not-json").unwrap();
 
-        assert!(load_cached_workspace_model(&workspace.id).unwrap().is_none());
+        assert!(load_cached_workspace_model(&workspace.id)
+            .unwrap()
+            .is_none());
         assert!(!path.exists());
         let quarantined = fs::read_dir(path.parent().unwrap())
             .unwrap()
@@ -2109,9 +2290,16 @@ mod tests {
         let _guard = TEST_ENV_LOCK.lock().unwrap();
         let _home = TestHome::new("workspace-data-dir");
         let workspace = create_workspace("Safe Workspace").unwrap();
-        assert!(workspace_data_dir(&workspace.id).unwrap().ends_with(&workspace.id));
-        assert_eq!(workspace_data_dir("../outside").unwrap_err().kind(), io::ErrorKind::InvalidInput);
-        assert_eq!(workspace_data_dir("missing-workspace").unwrap_err().kind(), io::ErrorKind::NotFound);
+        assert!(workspace_data_dir(&workspace.id)
+            .unwrap()
+            .ends_with(&workspace.id));
+        assert_eq!(
+            workspace_data_dir("../outside").unwrap_err().kind(),
+            io::ErrorKind::InvalidInput
+        );
+        assert_eq!(
+            workspace_data_dir("missing-workspace").unwrap_err().kind(),
+            io::ErrorKind::NotFound
+        );
     }
-
 }

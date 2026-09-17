@@ -4,9 +4,10 @@ use reposlice_core::{
     ScopedTarget, WorkspaceModel,
 };
 use reposlice_graph::{
-    dependency_slice, export_workspace_graphml, export_workspace_mermaid, impact_slice, validate_dependency_graph, validate_workspace_graph,
-    workspace_dependency_slice, workspace_impact_slice, DependencySlice, GraphIntegrityReport,
-    WorkspaceDependencySlice, WorkspaceGraphIntegrityReport,
+    dependency_slice, export_workspace_graphml, export_workspace_mermaid, impact_slice,
+    validate_dependency_graph, validate_workspace_graph, workspace_dependency_slice,
+    workspace_impact_slice, DependencySlice, GraphIntegrityReport, WorkspaceDependencySlice,
+    WorkspaceGraphIntegrityReport,
 };
 use reposlice_runtime::{detect_project_runtime, RuntimeCapabilities};
 use reposlice_scanner::{scan_project_with_registry, AnalyzerRegistry};
@@ -201,11 +202,15 @@ impl RepoSlice {
 
     pub fn export_workspace(&self, workspace: &WorkspaceModel, format: &str) -> io::Result<String> {
         match format.to_ascii_lowercase().as_str() {
-            "json" => serde_json::to_string_pretty(workspace)
-                .map_err(|error| io::Error::other(format!("Workspace model could not be serialized: {error}"))),
+            "json" => serde_json::to_string_pretty(workspace).map_err(|error| {
+                io::Error::other(format!("Workspace model could not be serialized: {error}"))
+            }),
             "mermaid" | "mmd" => Ok(export_workspace_mermaid(workspace)),
             "graphml" => Ok(export_workspace_graphml(workspace)),
-            other => Err(io::Error::new(io::ErrorKind::InvalidInput, format!("Unsupported export format: {other}"))),
+            other => Err(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                format!("Unsupported export format: {other}"),
+            )),
         }
     }
 
@@ -234,12 +239,16 @@ fn resolve_workspace_targets(
                 .repositories
                 .iter()
                 .find(|repository| repository.id == target.repository_id)
-                .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Repository was not found"))?;
+                .ok_or_else(|| {
+                    io::Error::new(io::ErrorKind::NotFound, "Repository was not found")
+                })?;
             let unit = repository
                 .project_units
                 .iter()
                 .find(|unit| unit.id == target.project_unit_id)
-                .ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "Project unit was not found"))?;
+                .ok_or_else(|| {
+                    io::Error::new(io::ErrorKind::NotFound, "Project unit was not found")
+                })?;
             let component = unit
                 .model
                 .resolve_target_component_id(&target.target_id)
@@ -262,8 +271,7 @@ fn resolve_target<'a>(model: &'a ProjectModel, target: &str) -> io::Result<&'a s
 mod tests {
     use super::*;
     use reposlice_core::{
-        AnalysisMetadata, CompatibilityLevel, Component, ComponentKind, Dependency,
-        DependencyKind,
+        AnalysisMetadata, CompatibilityLevel, Component, ComponentKind, Dependency, DependencyKind,
     };
 
     fn model() -> ProjectModel {

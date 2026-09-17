@@ -1,7 +1,7 @@
 use reposlice_core::{
-    stable_hash, read_source_text, AnalysisContribution, AnalysisMetadata, Component, ComponentKind, Dependency,
-    DependencyKind, Evidence, EvidenceKind, LanguageAnalyzer, ScanPolicy, SymbolMetadata,
-    DEFAULT_MAX_SOURCE_SIZE,
+    read_source_text, stable_hash, AnalysisContribution, AnalysisMetadata, Component,
+    ComponentKind, Dependency, DependencyKind, Evidence, EvidenceKind, LanguageAnalyzer,
+    ScanPolicy, SymbolMetadata, DEFAULT_MAX_SOURCE_SIZE,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -83,7 +83,10 @@ impl LanguageAnalyzer for PhpLanguageAnalyzer {
         Ok(AnalysisContribution {
             components: parsed.components,
             dependencies: parsed.dependencies,
-            metadata: AnalysisMetadata { symbols, ..Default::default() },
+            metadata: AnalysisMetadata {
+                symbols,
+                ..Default::default()
+            },
             ..Default::default()
         })
     }
@@ -790,11 +793,7 @@ pub fn php_syntax_balanced(content: &str) -> bool {
     stack.is_empty()
 }
 
-fn collect_php_files(
-    root: &Path,
-    path: &Path,
-    files: &mut Vec<PathBuf>,
-) -> io::Result<()> {
+fn collect_php_files(root: &Path, path: &Path, files: &mut Vec<PathBuf>) -> io::Result<()> {
     if excluded(root, path) {
         return Ok(());
     }

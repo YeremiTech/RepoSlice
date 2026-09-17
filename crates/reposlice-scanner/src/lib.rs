@@ -2,10 +2,12 @@ use reposlice_adapter_laravel::LaravelAdapter;
 use reposlice_adapter_spring::SpringAdapter;
 use reposlice_adapter_web::WebFrameworkSuite;
 use reposlice_core::{
-    AnalysisContribution, AnalysisDiagnostic, AnalysisMetadata, CompatibilityLevel, Component,
-    ComponentKind, DiagnosticLevel, EntrypointMetadata, Evidence, EvidenceKind, FrameworkAdapter,
-    FrameworkDetectionPolicy, FrameworkSuite, LanguageAnalyzer, ProjectModel, ProjectRole, RuntimeRequirement, ScanPolicy, SymbolMetadata, Technology,
-    technology_classification, clear_source_text_cache, read_source_text, DEFAULT_MAX_FALLBACK_FILES, DEFAULT_MAX_INDEXED_TEXT_BYTES, DEFAULT_MAX_SOURCE_SIZE,
+    clear_source_text_cache, read_source_text, technology_classification, AnalysisContribution,
+    AnalysisDiagnostic, AnalysisMetadata, CompatibilityLevel, Component, ComponentKind,
+    DiagnosticLevel, EntrypointMetadata, Evidence, EvidenceKind, FrameworkAdapter,
+    FrameworkDetectionPolicy, FrameworkSuite, LanguageAnalyzer, ProjectModel, ProjectRole,
+    RuntimeRequirement, ScanPolicy, SymbolMetadata, Technology, DEFAULT_MAX_FALLBACK_FILES,
+    DEFAULT_MAX_INDEXED_TEXT_BYTES, DEFAULT_MAX_SOURCE_SIZE,
 };
 use reposlice_parser_java::JavaLanguageAnalyzer;
 use reposlice_parser_php::PhpLanguageAnalyzer;
@@ -20,7 +22,8 @@ use std::sync::{Mutex, OnceLock};
 use std::time::UNIX_EPOCH;
 
 static MODEL_CACHE: OnceLock<Mutex<BTreeMap<String, (u64, ProjectModel)>>> = OnceLock::new();
-static CLEAN_GIT_MODEL_CACHE: OnceLock<Mutex<BTreeMap<String, (String, ProjectModel)>>> = OnceLock::new();
+static CLEAN_GIT_MODEL_CACHE: OnceLock<Mutex<BTreeMap<String, (String, ProjectModel)>>> =
+    OnceLock::new();
 
 const ANALYZER_REGISTRY_SCHEMA: u32 = 2;
 
@@ -51,7 +54,9 @@ impl ScanTextIndex {
                 continue;
             }
             used = used.saturating_add(content.len());
-            index.lowercase.insert(file.clone(), content.to_ascii_lowercase());
+            index
+                .lowercase
+                .insert(file.clone(), content.to_ascii_lowercase());
         }
         index
     }
@@ -60,7 +65,6 @@ impl ScanTextIndex {
         self.lowercase.get(path).map(String::as_str)
     }
 }
-
 
 const UNIT_MANIFESTS: &[&str] = &[
     "pom.xml",
@@ -128,7 +132,8 @@ impl AnalyzerRegistry {
         A: LanguageAnalyzer + 'static,
     {
         let id = analyzer.id();
-        self.language_analyzers.retain(|existing| existing.id() != id);
+        self.language_analyzers
+            .retain(|existing| existing.id() != id);
         self.language_analyzers.push(Box::new(analyzer));
     }
 
@@ -137,7 +142,8 @@ impl AnalyzerRegistry {
         A: FrameworkAdapter + 'static,
     {
         let id = adapter.id();
-        self.framework_adapters.retain(|existing| existing.id() != id);
+        self.framework_adapters
+            .retain(|existing| existing.id() != id);
         self.framework_adapters.push(Box::new(adapter));
     }
 
@@ -151,7 +157,10 @@ impl AnalyzerRegistry {
     }
 
     pub fn language_ids(&self) -> Vec<&'static str> {
-        self.language_analyzers.iter().map(|item| item.id()).collect()
+        self.language_analyzers
+            .iter()
+            .map(|item| item.id())
+            .collect()
     }
 
     pub fn framework_ids(&self) -> Vec<&'static str> {
@@ -161,7 +170,6 @@ impl AnalyzerRegistry {
             .chain(self.framework_suites.iter().map(|item| item.id()))
             .collect()
     }
-
 
     pub fn set_detection_policy(&mut self, policy: FrameworkDetectionPolicy) {
         self.detection_policy = policy;
@@ -434,11 +442,7 @@ fn scan_project_pipeline(root: &Path, registry: &AnalyzerRegistry) -> io::Result
         .unwrap_or("project")
         .to_string();
 
-    let cache_key = format!(
-        "{}::{}",
-        canonical.to_string_lossy(),
-        registry.signature()
-    );
+    let cache_key = format!("{}::{}", canonical.to_string_lossy(), registry.signature());
     let clean_head = clean_git_head(&canonical);
     if let Some(head) = clean_head.as_deref() {
         if let Some((cached_head, model)) = clean_git_model_cache()
@@ -592,12 +596,18 @@ fn scan_project_pipeline(root: &Path, registry: &AnalyzerRegistry) -> io::Result
         }
 
         if content.contains("\"vite\"")
-            || all_files.iter().any(|path| path.file_name().is_some_and(|name| name.to_string_lossy().starts_with("vite.config")))
+            || all_files.iter().any(|path| {
+                path.file_name()
+                    .is_some_and(|name| name.to_string_lossy().starts_with("vite.config"))
+            })
         {
             technologies.push(technology("build", "Vite", 85));
         }
         if content.contains("\"webpack\"")
-            || all_files.iter().any(|path| path.file_name().is_some_and(|name| name.to_string_lossy().starts_with("webpack.config")))
+            || all_files.iter().any(|path| {
+                path.file_name()
+                    .is_some_and(|name| name.to_string_lossy().starts_with("webpack.config"))
+            })
         {
             technologies.push(technology("build", "Webpack", 85));
         }
@@ -611,13 +621,18 @@ fn scan_project_pipeline(root: &Path, registry: &AnalyzerRegistry) -> io::Result
         });
     }
 
-    if canonical.join("package-lock.json").exists() && !technologies.iter().any(|item| item.name == "npm") {
+    if canonical.join("package-lock.json").exists()
+        && !technologies.iter().any(|item| item.name == "npm")
+    {
         technologies.push(technology("build", "npm", 100));
     }
-    if canonical.join("pnpm-lock.yaml").exists() && !technologies.iter().any(|item| item.name == "pnpm") {
+    if canonical.join("pnpm-lock.yaml").exists()
+        && !technologies.iter().any(|item| item.name == "pnpm")
+    {
         technologies.push(technology("build", "pnpm", 100));
     }
-    if canonical.join("yarn.lock").exists() && !technologies.iter().any(|item| item.name == "Yarn") {
+    if canonical.join("yarn.lock").exists() && !technologies.iter().any(|item| item.name == "Yarn")
+    {
         technologies.push(technology("build", "Yarn", 100));
     }
 
@@ -739,7 +754,9 @@ fn scan_project_pipeline(root: &Path, registry: &AnalyzerRegistry) -> io::Result
     for suite in &registry.framework_suites {
         for framework in suite.analyze(&canonical, &components)? {
             if !framework.detection.evidence.is_empty() {
-                analysis.framework_detections.push(framework.detection.clone());
+                analysis
+                    .framework_detections
+                    .push(framework.detection.clone());
             }
             if !registry.is_actionable(&framework.detection) {
                 analysis.diagnostics.push(AnalysisDiagnostic {
@@ -1033,12 +1050,18 @@ fn merge_contribution_parts(
         .framework_detections
         .extend(contribution.metadata.framework_detections);
     merge_symbols(&mut analysis.symbols, contribution.metadata.symbols);
-    analysis.entrypoints.extend(contribution.metadata.entrypoints);
-    analysis.dependencies.extend(contribution.metadata.dependencies);
+    analysis
+        .entrypoints
+        .extend(contribution.metadata.entrypoints);
+    analysis
+        .dependencies
+        .extend(contribution.metadata.dependencies);
     analysis
         .runtime_requirements
         .extend(contribution.metadata.runtime_requirements);
-    analysis.diagnostics.extend(contribution.metadata.diagnostics);
+    analysis
+        .diagnostics
+        .extend(contribution.metadata.diagnostics);
     let level = if matches!(minimum_level, CompatibilityLevel::Syntax) && has_dependencies {
         CompatibilityLevel::Semantic
     } else {
@@ -1073,7 +1096,6 @@ fn technology(category: &str, name: &str, confidence: u8) -> Technology {
         detected_from,
         detection_kind: "DIRECT".into(),
     }
-
 }
 
 fn attach_technology_evidence(
@@ -1124,9 +1146,17 @@ fn attach_technology_evidence(
                     let content = text_index.get(file).unwrap_or("");
                     let content_match = technology.category == "data"
                         && markers.iter().any(|marker| content.contains(marker));
-                    if markers.iter().any(|marker| name == *marker || name.starts_with(marker)) || content_match {
+                    if markers
+                        .iter()
+                        .any(|marker| name == *marker || name.starts_with(marker))
+                        || content_match
+                    {
                         technology.evidence.push(Evidence {
-                            kind: if technology.category == "data" { EvidenceKind::Configuration } else { EvidenceKind::Manifest },
+                            kind: if technology.category == "data" {
+                                EvidenceKind::Configuration
+                            } else {
+                                EvidenceKind::Manifest
+                            },
                             source: file.to_string_lossy().into_owned(),
                             detail: format!("{} evidence", technology.name),
                             confidence: 95,
@@ -1144,17 +1174,31 @@ fn attach_technology_evidence(
                         detail: format!("{} file extension", technology.name),
                         confidence: 100,
                     });
-                    if technology.evidence.len() >= 3 { break; }
+                    if technology.evidence.len() >= 3 {
+                        break;
+                    }
                 }
             }
         }
-        technology.evidence.sort_by(|left, right| left.source.cmp(&right.source));
-        technology.evidence.dedup_by(|left, right| left.source == right.source && left.detail == right.detail);
+        technology
+            .evidence
+            .sort_by(|left, right| left.source.cmp(&right.source));
+        technology
+            .evidence
+            .dedup_by(|left, right| left.source == right.source && left.detail == right.detail);
         if !technology.evidence.is_empty() {
-            technology.detected_from = technology.evidence.iter().map(|item| item.kind.as_str().to_string()).collect();
+            technology.detected_from = technology
+                .evidence
+                .iter()
+                .map(|item| item.kind.as_str().to_string())
+                .collect();
             technology.detected_from.sort();
             technology.detected_from.dedup();
-            if technology.evidence.iter().all(|item| item.kind == EvidenceKind::Convention) {
+            if technology
+                .evidence
+                .iter()
+                .all(|item| item.kind == EvidenceKind::Convention)
+            {
                 technology.detection_kind = "INFERRED".into();
             }
             let independent = technology.evidence.len().min(4) as u8;
@@ -1174,37 +1218,92 @@ fn attach_technology_evidence(
     }
 }
 
-fn detect_databases(
-    root: &Path,
-    files: &[PathBuf],
-    text_index: &ScanTextIndex,
-) -> Vec<Technology> {
+fn detect_databases(root: &Path, files: &[PathBuf], text_index: &ScanTextIndex) -> Vec<Technology> {
     let mut result = Vec::new();
     let definitions = [
-        ("PostgreSQL", ["org.postgresql", "jdbc:postgresql://", "postgres://", "postgresql://", "image: postgres"].as_slice()),
-        ("MySQL", ["com.mysql", "jdbc:mysql://", "mysql://", "image: mysql"].as_slice()),
-        ("MariaDB", ["org.mariadb", "jdbc:mariadb://", "mariadb://", "image: mariadb"].as_slice()),
-        ("SQL Server", ["mssql-jdbc", "jdbc:sqlserver://", "sqlserver://", "image: mssql"].as_slice()),
-        ("Oracle", ["ojdbc", "jdbc:oracle:", "oracle://", "image: oracle"].as_slice()),
-        ("SQLite", ["sqlite-jdbc", "jdbc:sqlite:", "sqlite://", "image: sqlite"].as_slice()),
-        ("MongoDB", ["mongodb://", "mongodb+srv://", "mongodb"].as_slice()),
+        (
+            "PostgreSQL",
+            [
+                "org.postgresql",
+                "jdbc:postgresql://",
+                "postgres://",
+                "postgresql://",
+                "image: postgres",
+            ]
+            .as_slice(),
+        ),
+        (
+            "MySQL",
+            ["com.mysql", "jdbc:mysql://", "mysql://", "image: mysql"].as_slice(),
+        ),
+        (
+            "MariaDB",
+            [
+                "org.mariadb",
+                "jdbc:mariadb://",
+                "mariadb://",
+                "image: mariadb",
+            ]
+            .as_slice(),
+        ),
+        (
+            "SQL Server",
+            [
+                "mssql-jdbc",
+                "jdbc:sqlserver://",
+                "sqlserver://",
+                "image: mssql",
+            ]
+            .as_slice(),
+        ),
+        (
+            "Oracle",
+            ["ojdbc", "jdbc:oracle:", "oracle://", "image: oracle"].as_slice(),
+        ),
+        (
+            "SQLite",
+            ["sqlite-jdbc", "jdbc:sqlite:", "sqlite://", "image: sqlite"].as_slice(),
+        ),
+        (
+            "MongoDB",
+            ["mongodb://", "mongodb+srv://", "mongodb"].as_slice(),
+        ),
         ("Redis", ["redis://", "redis", "image: redis"].as_slice()),
     ];
     for (name, markers) in definitions {
         let mut matches = 0u8;
         for file in files {
-            let file_name = file.file_name().unwrap_or_default().to_string_lossy().to_ascii_lowercase();
-            let relevant = file_name.contains("pom") || file_name.contains("gradle") || file_name.contains("package")
-                || file_name.contains("application") || file_name.contains("docker") || file_name == ".env"
-                || file.extension().is_some_and(|ext| matches!(ext.to_string_lossy().as_ref(), "yml" | "yaml" | "properties" | "json" | "toml"));
-            if !relevant { continue; }
+            let file_name = file
+                .file_name()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .to_ascii_lowercase();
+            let relevant = file_name.contains("pom")
+                || file_name.contains("gradle")
+                || file_name.contains("package")
+                || file_name.contains("application")
+                || file_name.contains("docker")
+                || file_name == ".env"
+                || file.extension().is_some_and(|ext| {
+                    matches!(
+                        ext.to_string_lossy().as_ref(),
+                        "yml" | "yaml" | "properties" | "json" | "toml"
+                    )
+                });
+            if !relevant {
+                continue;
+            }
             let content = text_index.get(file).unwrap_or("");
             if markers.iter().any(|marker| content.contains(marker)) {
                 matches = matches.saturating_add(1);
             }
         }
         if matches > 0 {
-            result.push(technology("data", name, (65u16 + u16::from(matches.min(3)) * 12).min(100) as u8));
+            result.push(technology(
+                "data",
+                name,
+                (65u16 + u16::from(matches.min(3)) * 12).min(100) as u8,
+            ));
         }
     }
     let _ = root;
@@ -1216,23 +1315,46 @@ fn detect_sql_and_orm(files: &[PathBuf], text_index: &ScanTextIndex) -> Vec<Tech
     let mut sql_evidence = false;
     let mut orm = Vec::new();
     for file in files {
-        let name = file.file_name().unwrap_or_default().to_string_lossy().to_ascii_lowercase();
+        let name = file
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .to_ascii_lowercase();
         let content = text_index.get(file).unwrap_or("");
-        if file.extension().is_some_and(|ext| ext.to_string_lossy().as_ref() == "sql")
+        if file
+            .extension()
+            .is_some_and(|ext| ext.to_string_lossy().as_ref() == "sql")
             || content.contains("@query(nativequery = true)")
             || content.contains("select ") && content.contains(" from ")
         {
             sql_evidence = true;
         }
-        if content.contains("hibernate") || content.contains("org.hibernate") { orm.push(("Hibernate", file)); }
-        if content.contains("spring-data-jpa") || content.contains("javax.persistence") || content.contains("jakarta.persistence") { orm.push(("JPA", file)); }
-        if content.contains("prisma") { orm.push(("Prisma", file)); }
-        if content.contains("typeorm") { orm.push(("TypeORM", file)); }
-        if content.contains("sequelize") { orm.push(("Sequelize", file)); }
+        if content.contains("hibernate") || content.contains("org.hibernate") {
+            orm.push(("Hibernate", file));
+        }
+        if content.contains("spring-data-jpa")
+            || content.contains("javax.persistence")
+            || content.contains("jakarta.persistence")
+        {
+            orm.push(("JPA", file));
+        }
+        if content.contains("prisma") {
+            orm.push(("Prisma", file));
+        }
+        if content.contains("typeorm") {
+            orm.push(("TypeORM", file));
+        }
+        if content.contains("sequelize") {
+            orm.push(("Sequelize", file));
+        }
         let _ = name;
     }
-    if sql_evidence { result.push(technology("language", "SQL", 90)); }
-    for (name, _) in orm { result.push(technology("data", name, 80)); }
+    if sql_evidence {
+        result.push(technology("language", "SQL", 90));
+    }
+    for (name, _) in orm {
+        result.push(technology("data", name, 80));
+    }
     result
 }
 
@@ -1424,11 +1546,7 @@ fn collect_all_files(root: &Path) -> io::Result<Vec<PathBuf>> {
     Ok(files)
 }
 
-fn collect_files(
-    root: &Path,
-    path: &Path,
-    files: &mut Vec<PathBuf>,
-) -> io::Result<()> {
+fn collect_files(root: &Path, path: &Path, files: &mut Vec<PathBuf>) -> io::Result<()> {
     if skip(root, path) {
         return Ok(());
     }
@@ -1731,10 +1849,7 @@ mod tests {
 
     #[test]
     fn registry_adds_external_language_analyzers_without_scanner_changes() {
-        let root = std::env::temp_dir().join(format!(
-            "reposlice-registry-{}",
-            std::process::id()
-        ));
+        let root = std::env::temp_dir().join(format!("reposlice-registry-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
         fs::create_dir_all(&root).unwrap();
         fs::write(root.join("custom.txt"), "custom").unwrap();
@@ -1751,8 +1866,8 @@ mod tests {
 
     #[test]
     fn scans_repository_when_storage_parent_is_reposlice_directory() {
-        let temp_root = std::env::temp_dir()
-            .join(format!("reposlice-storage-{}", std::process::id()));
+        let temp_root =
+            std::env::temp_dir().join(format!("reposlice-storage-{}", std::process::id()));
         let storage = temp_root.join(".reposlice").join("repositories");
         let root = storage.join("project");
         let _ = fs::remove_dir_all(&temp_root);
@@ -1968,10 +2083,7 @@ mod tests {
 
     #[test]
     fn clean_git_head_is_none_for_non_git_directories() {
-        let root = std::env::temp_dir().join(format!(
-            "reposlice-non-git-{}",
-            std::process::id()
-        ));
+        let root = std::env::temp_dir().join(format!("reposlice-non-git-{}", std::process::id()));
         fs::create_dir_all(&root).unwrap();
         assert_eq!(clean_git_head(&root), None);
         fs::remove_dir_all(root).unwrap();
@@ -1998,10 +2110,7 @@ mod tests {
             "DerivedData",
         ] {
             let root = Path::new("project");
-            assert!(skip(
-                root,
-                &root.join(directory).join("generated.ts")
-            ));
+            assert!(skip(root, &root.join(directory).join("generated.ts")));
         }
     }
 
@@ -2140,13 +2249,26 @@ mod tests {
 
     #[test]
     fn separates_sql_from_database_evidence_and_keeps_technology_scope() {
-        let root = std::env::temp_dir().join(format!("reposlice-tech-evidence-{}", std::process::id()));
+        let root =
+            std::env::temp_dir().join(format!("reposlice-tech-evidence-{}", std::process::id()));
         fs::create_dir_all(&root).unwrap();
         fs::write(root.join("schema.sql"), "CREATE TABLE users (id integer);").unwrap();
-        fs::write(root.join("application.properties"), "spring.datasource.url=jdbc:postgresql://localhost/app").unwrap();
+        fs::write(
+            root.join("application.properties"),
+            "spring.datasource.url=jdbc:postgresql://localhost/app",
+        )
+        .unwrap();
         let model = scan_project(&root).unwrap();
-        let sql = model.technologies.iter().find(|item| item.name == "SQL").unwrap();
-        let postgres = model.technologies.iter().find(|item| item.name == "PostgreSQL").unwrap();
+        let sql = model
+            .technologies
+            .iter()
+            .find(|item| item.name == "SQL")
+            .unwrap();
+        let postgres = model
+            .technologies
+            .iter()
+            .find(|item| item.name == "PostgreSQL")
+            .unwrap();
         assert_eq!(sql.classification, "Query Language");
         assert_eq!(postgres.classification, "Database");
         assert!(!sql.evidence.is_empty());
@@ -2161,8 +2283,20 @@ mod tests {
         fs::create_dir_all(&root).unwrap();
         fs::write(root.join("application.properties"), "jdbc:postgresql://x\njdbc:mysql://x\njdbc:mariadb://x\njdbc:sqlserver://x\njdbc:oracle:thin\njdbc:sqlite:x\nmongodb://x\nredis://x").unwrap();
         let model = scan_project(&root).unwrap();
-        for name in ["PostgreSQL", "MySQL", "MariaDB", "SQL Server", "Oracle", "SQLite", "MongoDB", "Redis"] {
-            assert!(model.technologies.iter().any(|item| item.name == name), "missing {name}");
+        for name in [
+            "PostgreSQL",
+            "MySQL",
+            "MariaDB",
+            "SQL Server",
+            "Oracle",
+            "SQLite",
+            "MongoDB",
+            "Redis",
+        ] {
+            assert!(
+                model.technologies.iter().any(|item| item.name == name),
+                "missing {name}"
+            );
         }
         fs::remove_dir_all(root).unwrap();
     }
@@ -2174,7 +2308,11 @@ mod tests {
         let mut false_negative = 0usize;
         let mut cases = 0usize;
 
-        for line in corpus.lines().map(str::trim).filter(|line| !line.is_empty()) {
+        for line in corpus
+            .lines()
+            .map(str::trim)
+            .filter(|line| !line.is_empty())
+        {
             let (fixture_name, expected_raw) = line.split_once('\t').unwrap();
             clear_analysis_cache();
             let model = scan_project(&fixture(fixture_name)).unwrap();
@@ -2219,9 +2357,11 @@ mod tests {
             cases >= 34,
             "framework quality corpus unexpectedly shrank to {cases} cases"
         );
-        assert!(precision >= 0.90, "framework precision regressed to {precision:.4}");
+        assert!(
+            precision >= 0.90,
+            "framework precision regressed to {precision:.4}"
+        );
         assert!(recall >= 0.90, "framework recall regressed to {recall:.4}");
         assert!(f1 >= 0.90, "framework F1 regressed to {f1:.4}");
     }
-
 }

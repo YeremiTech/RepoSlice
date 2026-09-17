@@ -3,17 +3,17 @@ use reposlice_capsule::{
 };
 use reposlice_core::{ScopedTarget, WorkspaceModel};
 use reposlice_graph::{
-    dependency_slice, export_workspace_graphml, export_workspace_mermaid, impact_slice, validate_dependency_graph, validate_workspace_graph,
+    dependency_slice, export_workspace_graphml, export_workspace_mermaid, impact_slice,
+    validate_dependency_graph, validate_workspace_graph,
 };
 use reposlice_runtime::detect_runtime;
 use reposlice_scanner::{clear_analysis_cache, scan_project};
 use reposlice_verifier::{sandbox_validation_plan, verify_capsule};
 use reposlice_workspace::{
     add_project, add_repository, clone_repository, create_workspace, delete_repository,
-    latest_analysis_record, list_analysis_records, list_projects, list_repositories, list_workspaces,
-    load_cached_workspace_model,
-    scan_workspace, scan_workspace_repository, update_managed_repository, workspace_root,
-    install_local_crash_reporting, AnalysisRecord,
+    install_local_crash_reporting, latest_analysis_record, list_analysis_records, list_projects,
+    list_repositories, list_workspaces, load_cached_workspace_model, scan_workspace,
+    scan_workspace_repository, update_managed_repository, workspace_root, AnalysisRecord,
 };
 use std::env;
 use std::path::{Path, PathBuf};
@@ -190,7 +190,10 @@ fn command_repositories(arguments: &[String]) -> Result<(), String> {
         println!("[{}]", rows);
     } else {
         for repository in repositories {
-            println!("{}\t{}\t{}", repository.id, repository.name, repository.path);
+            println!(
+                "{}\t{}\t{}",
+                repository.id, repository.name, repository.path
+            );
         }
     }
     Ok(())
@@ -237,7 +240,9 @@ fn command_validate_workspace(arguments: &[String]) -> Result<(), String> {
         .ok_or_else(|| "A workspace id is required".to_string())?;
     let workspace = load_cached_workspace_model(workspace_id)
         .map_err(|error| error.to_string())?
-        .ok_or_else(|| "No current workspace model cache is available; run scan-workspace first".to_string())?;
+        .ok_or_else(|| {
+            "No current workspace model cache is available; run scan-workspace first".to_string()
+        })?;
 
     let cross_report = validate_workspace_graph(&workspace);
     let local_errors = workspace
@@ -280,20 +285,30 @@ fn command_validate_workspace(arguments: &[String]) -> Result<(), String> {
 }
 
 fn command_export_workspace(arguments: &[String]) -> Result<(), String> {
-    let workspace_id = arguments.get(2).ok_or_else(|| "A workspace id is required".to_string())?;
+    let workspace_id = arguments
+        .get(2)
+        .ok_or_else(|| "A workspace id is required".to_string())?;
     let format = option_value(arguments, "--format").unwrap_or_else(|| "json".to_string());
     let model = load_cached_workspace_model(workspace_id)
         .map_err(|error| error.to_string())?
-        .ok_or_else(|| "No valid cached workspace model is available. Run scan-workspace first.".to_string())?;
+        .ok_or_else(|| {
+            "No valid cached workspace model is available. Run scan-workspace first.".to_string()
+        })?;
     let content = match format.to_ascii_lowercase().as_str() {
         "json" => serde_json::to_string_pretty(&model).map_err(|error| error.to_string())?,
         "mermaid" | "mmd" => export_workspace_mermaid(&model),
         "graphml" => export_workspace_graphml(&model),
-        other => return Err(format!("Unsupported export format: {other}. Use json, mermaid or graphml")),
+        other => {
+            return Err(format!(
+                "Unsupported export format: {other}. Use json, mermaid or graphml"
+            ))
+        }
     };
     if let Some(output) = option_value(arguments, "--output") {
         std::fs::write(&output, &content).map_err(|error| error.to_string())?;
-        if !format_is_json(arguments) { println!("Workspace export: {output}"); }
+        if !format_is_json(arguments) {
+            println!("Workspace export: {output}");
+        }
     } else {
         println!("{content}");
     }
@@ -441,14 +456,11 @@ fn command_audit(arguments: &[String]) -> Result<(), String> {
             );
             println!(
                 "Diagnostics: {} info, {} warnings, {} errors",
-                record.diagnostics_info,
-                record.diagnostics_warning,
-                record.diagnostics_error
+                record.diagnostics_info, record.diagnostics_warning, record.diagnostics_error
             );
             println!(
                 "Frameworks: {} detected, {} actionable",
-                record.framework_detections,
-                record.actionable_frameworks
+                record.framework_detections, record.actionable_frameworks
             );
             println!("Registry: {}", record.registry_signature);
             println!("Fingerprint: {}", record.model_fingerprint);
@@ -605,8 +617,14 @@ fn command_scan(arguments: &[String]) -> Result<(), String> {
         println!("Components: {}", model.components.len());
         println!("Entrypoints: {}", model.entrypoints.len());
         println!("Dependencies: {}", model.dependencies.len());
-        println!("Graph integrity: {}", if integrity.passed() { "PASS" } else { "FAIL" });
-        println!("Graph clean: {}", if integrity.is_clean() { "YES" } else { "NO" });
+        println!(
+            "Graph integrity: {}",
+            if integrity.passed() { "PASS" } else { "FAIL" }
+        );
+        println!(
+            "Graph clean: {}",
+            if integrity.is_clean() { "YES" } else { "NO" }
+        );
         println!("Graph cycles: {}", integrity.cycles.len());
         println!();
         for technology in model.technologies {
@@ -642,17 +660,33 @@ fn command_benchmark(arguments: &[String]) -> Result<(), String> {
     } else {
         cold_ms
     };
-    let cold_files_per_second = if cold_ms > 0.0 { model.files as f64 / (cold_ms / 1000.0) } else { 0.0 };
-    let warm_files_per_second = if warm_ms > 0.0 { model.files as f64 / (warm_ms / 1000.0) } else { 0.0 };
+    let cold_files_per_second = if cold_ms > 0.0 {
+        model.files as f64 / (cold_ms / 1000.0)
+    } else {
+        0.0
+    };
+    let warm_files_per_second = if warm_ms > 0.0 {
+        model.files as f64 / (warm_ms / 1000.0)
+    } else {
+        0.0
+    };
     let mut sorted_durations = durations_ms.clone();
     sorted_durations.sort_by(|left, right| left.total_cmp(right));
-    let p95_index = ((sorted_durations.len() as f64 * 0.95).ceil() as usize).saturating_sub(1).min(sorted_durations.len().saturating_sub(1));
+    let p95_index = ((sorted_durations.len() as f64 * 0.95).ceil() as usize)
+        .saturating_sub(1)
+        .min(sorted_durations.len().saturating_sub(1));
     let p95_ms = sorted_durations.get(p95_index).copied().unwrap_or(cold_ms);
-    let model_json_bytes = serde_json::to_vec(&model).map(|value| value.len()).unwrap_or(0);
+    let model_json_bytes = serde_json::to_vec(&model)
+        .map(|value| value.len())
+        .unwrap_or(0);
     let diagnostic_count = model.analysis.diagnostics.len();
 
     if format_is_json(arguments) {
-        let runs_json = durations_ms.iter().map(|value| format!("{value:.3}")).collect::<Vec<_>>().join(",");
+        let runs_json = durations_ms
+            .iter()
+            .map(|value| format!("{value:.3}"))
+            .collect::<Vec<_>>()
+            .join(",");
         println!(
             "{{\"project\":{},\"files\":{},\"components\":{},\"entrypoints\":{},\"dependencies\":{},\"diagnostics\":{},\"compatibility\":{},\"model_json_bytes\":{},\"runs\":{},\"durations_ms\":[{}],\"cold_ms\":{:.3},\"warm_average_ms\":{:.3},\"p95_ms\":{:.3},\"cold_files_per_second\":{:.1},\"warm_files_per_second\":{:.1}}}",
             json_string(&model.name), model.files, model.components.len(), model.entrypoints.len(), model.dependencies.len(), diagnostic_count,
@@ -661,11 +695,27 @@ fn command_benchmark(arguments: &[String]) -> Result<(), String> {
     } else {
         println!("Project: {}", model.name);
         println!("Files: {}", model.files);
-        println!("Components: {} | Entrypoints: {} | Dependencies: {}", model.components.len(), model.entrypoints.len(), model.dependencies.len());
-        println!("Model JSON size: {} bytes | Diagnostics: {} | Compatibility: {}", model_json_bytes, diagnostic_count, model.compatibility.as_str());
+        println!(
+            "Components: {} | Entrypoints: {} | Dependencies: {}",
+            model.components.len(),
+            model.entrypoints.len(),
+            model.dependencies.len()
+        );
+        println!(
+            "Model JSON size: {} bytes | Diagnostics: {} | Compatibility: {}",
+            model_json_bytes,
+            diagnostic_count,
+            model.compatibility.as_str()
+        );
         println!("Runs: {}", runs);
-        println!("Cold scan: {:.3} ms ({:.1} files/s)", cold_ms, cold_files_per_second);
-        println!("Warm average: {:.3} ms ({:.1} files/s)", warm_ms, warm_files_per_second);
+        println!(
+            "Cold scan: {:.3} ms ({:.1} files/s)",
+            cold_ms, cold_files_per_second
+        );
+        println!(
+            "Warm average: {:.3} ms ({:.1} files/s)",
+            warm_ms, warm_files_per_second
+        );
         println!("P95 scan: {:.3} ms", p95_ms);
         for (index, duration) in durations_ms.iter().enumerate() {
             println!("Run {}: {:.3} ms", index + 1, duration);
@@ -673,7 +723,6 @@ fn command_benchmark(arguments: &[String]) -> Result<(), String> {
     }
     Ok(())
 }
-
 
 fn command_entrypoints(arguments: &[String]) -> Result<(), String> {
     let path = path_argument(arguments, 2)?;
@@ -789,7 +838,14 @@ fn command_slice(arguments: &[String]) -> Result<(), String> {
         .resolve_target_component_id(&target)
         .ok_or_else(|| format!("Target was not found: {target}"))?;
     let slice = dependency_slice(&model, component_id);
-    output_dependency_selection(arguments, &model, "slice", &target, &slice.nodes, slice.dependencies.len());
+    output_dependency_selection(
+        arguments,
+        &model,
+        "slice",
+        &target,
+        &slice.nodes,
+        slice.dependencies.len(),
+    );
     Ok(())
 }
 
@@ -990,7 +1046,10 @@ fn command_verify(arguments: &[String]) -> Result<(), String> {
         if !sandbox_plans.is_empty() {
             println!("Sandbox validation plans (not executed automatically):");
             for plan in &sandbox_plans {
-                println!("{}	{}	{}", plan.runtime, plan.manifest, plan.suggested_command);
+                println!(
+                    "{}	{}	{}",
+                    plan.runtime, plan.manifest, plan.suggested_command
+                );
             }
         }
     }
@@ -1033,7 +1092,11 @@ fn command_runtime(arguments: &[String]) -> Result<(), String> {
             println!(
                 "{}\t{}\t{}",
                 tool.name,
-                if tool.available { "available" } else { "missing" },
+                if tool.available {
+                    "available"
+                } else {
+                    "missing"
+                },
                 tool.version.unwrap_or_default()
             );
         }
@@ -1065,7 +1128,9 @@ fn format_is_json(arguments: &[String]) -> bool {
     arguments.iter().any(|argument| argument == "--json")
         || arguments.windows(2).any(|pair| {
             pair.first().is_some_and(|value| value == "--format")
-                && pair.get(1).is_some_and(|value| value.eq_ignore_ascii_case("json"))
+                && pair
+                    .get(1)
+                    .is_some_and(|value| value.eq_ignore_ascii_case("json"))
         })
 }
 
@@ -1150,7 +1215,9 @@ fn print_help() {
     println!("reposlice scan-repository <workspace-id> <repository-id> [--format json]");
     println!("reposlice cached-workspace <workspace-id> [--format json]");
     println!("reposlice validate-workspace <workspace-id> [--format json]");
-    println!("reposlice export-workspace <workspace-id> --format json|mermaid|graphml [--output path]");
+    println!(
+        "reposlice export-workspace <workspace-id> --format json|mermaid|graphml [--output path]"
+    );
     println!("reposlice update-repository <workspace-id> <repository-id> [--format json]");
     println!("reposlice remove-repository <workspace-id> <repository-id> [--format json]");
     println!("reposlice audit <workspace-id> [--repository <repository-id>] [--format json]");
@@ -1184,7 +1251,11 @@ mod tests {
 
     #[test]
     fn recognizes_json_format_switches() {
-        assert!(format_is_json(&["reposlice".into(), "scan".into(), "--json".into()]));
+        assert!(format_is_json(&[
+            "reposlice".into(),
+            "scan".into(),
+            "--json".into()
+        ]));
         assert!(format_is_json(&[
             "reposlice".into(),
             "scan".into(),

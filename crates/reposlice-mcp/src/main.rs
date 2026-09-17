@@ -1,6 +1,4 @@
-use reposlice_workspace::{
-    install_local_crash_reporting, load_cached_workspace_model,
-};
+use reposlice_workspace::{install_local_crash_reporting, load_cached_workspace_model};
 use serde_json::{json, Value};
 use std::env;
 use std::io::{self, Read, Write};
@@ -43,30 +41,70 @@ fn handle_connection(stream: &mut TcpStream) -> io::Result<()> {
         return write_http(stream, 404, &json!({"error":"not found"}).to_string());
     }
     if request.header("transfer-encoding").is_some() {
-        return write_http(stream, 400, &json!({"error":"transfer encoding is not supported"}).to_string());
+        return write_http(
+            stream,
+            400,
+            &json!({"error":"transfer encoding is not supported"}).to_string(),
+        );
     }
     if request.header("content-length").is_none() {
-        return write_http(stream, 400, &json!({"error":"content-length is required"}).to_string());
+        return write_http(
+            stream,
+            400,
+            &json!({"error":"content-length is required"}).to_string(),
+        );
     }
-    if !request.header("content-type").is_some_and(is_json_content_type) {
-        return write_http(stream, 400, &json!({"error":"content-type must be application/json"}).to_string());
+    if !request
+        .header("content-type")
+        .is_some_and(is_json_content_type)
+    {
+        return write_http(
+            stream,
+            400,
+            &json!({"error":"content-type must be application/json"}).to_string(),
+        );
     }
     let body: Value = match serde_json::from_slice(&request.body) {
         Ok(value) => value,
-        Err(error) => return write_json_rpc_error(stream, Value::Null, -32700, &format!("Parse error: {error}")),
+        Err(error) => {
+            return write_json_rpc_error(
+                stream,
+                Value::Null,
+                -32700,
+                &format!("Parse error: {error}"),
+            )
+        }
     };
     let id = body.get("id").cloned().unwrap_or(Value::Null);
     if request.header("mcp-protocol-version") != Some(MCP_PROTOCOL_VERSION) {
-        return write_json_rpc_error(stream, id, -32600, "Unsupported or missing MCP-Protocol-Version");
+        return write_json_rpc_error(
+            stream,
+            id,
+            -32600,
+            "Unsupported or missing MCP-Protocol-Version",
+        );
     }
     let method = body.get("method").and_then(Value::as_str).unwrap_or("");
     if request.header("mcp-method") != Some(method) {
-        return write_json_rpc_error(stream, id, -32600, "Mcp-Method header does not match request method");
+        return write_json_rpc_error(
+            stream,
+            id,
+            -32600,
+            "Mcp-Method header does not match request method",
+        );
     }
     if method == "tools/call" {
-        let name = body.pointer("/params/name").and_then(Value::as_str).unwrap_or("");
+        let name = body
+            .pointer("/params/name")
+            .and_then(Value::as_str)
+            .unwrap_or("");
         if request.header("mcp-name") != Some(name) {
-            return write_json_rpc_error(stream, id, -32600, "Mcp-Name header does not match tool name");
+            return write_json_rpc_error(
+                stream,
+                id,
+                -32600,
+                "Mcp-Name header does not match tool name",
+            );
         }
     }
 
@@ -77,7 +115,11 @@ fn handle_connection(stream: &mut TcpStream) -> io::Result<()> {
         _ => Err((-32601, format!("Method not found: {method}"))),
     };
     match result {
-        Ok(result) => write_http(stream, 200, &json!({"jsonrpc":"2.0","id":id,"result":result}).to_string()),
+        Ok(result) => write_http(
+            stream,
+            200,
+            &json!({"jsonrpc":"2.0","id":id,"result":result}).to_string(),
+        ),
         Err((code, message)) => write_json_rpc_error(stream, id, code, &message),
     }
 }
@@ -111,15 +153,22 @@ fn tool(name: &str, description: &str, input_schema: Value) -> Value {
 }
 
 fn call_tool(params: &Value) -> Result<Value, (i64, String)> {
-    let name = params.get("name").and_then(Value::as_str).ok_or((-32602, "Tool name is required".to_string()))?;
-    let arguments = params.get("arguments").cloned().unwrap_or_else(|| json!({}));
+    let name = params
+        .get("name")
+        .and_then(Value::as_str)
+        .ok_or((-32602, "Tool name is required".to_string()))?;
+    let arguments = params
+        .get("arguments")
+        .cloned()
+        .unwrap_or_else(|| json!({}));
     let output = match name {
         "workspace_status" => workspace_status(&arguments),
         _ => return Err((-32602, format!("Unknown tool: {name}"))),
     };
     match output {
         Ok(structured) => {
-            let text = serde_json::to_string_pretty(&structured).unwrap_or_else(|_| structured.to_string());
+            let text = serde_json::to_string_pretty(&structured)
+                .unwrap_or_else(|_| structured.to_string());
             Ok(json!({
                 "resultType":"complete",
                 "content":[{"type":"text","text":text}],
@@ -140,10 +189,29 @@ fn call_tool(params: &Value) -> Result<Value, (i64, String)> {
 fn workspace_status(arguments: &Value) -> Result<Value, String> {
     let workspace_id = required_string(arguments, "workspaceId")?;
     let model = current_workspace(workspace_id)?;
-    let project_units = model.repositories.iter().map(|repository| repository.project_units.len()).sum::<usize>();
-    let components = model.repositories.iter().flat_map(|repository| &repository.project_units).map(|unit| unit.model.components.len()).sum::<usize>();
-    let entrypoints = model.repositories.iter().flat_map(|repository| &repository.project_units).map(|unit| unit.model.entrypoints.len()).sum::<usize>();
-    let dependencies = model.repositories.iter().flat_map(|repository| &repository.project_units).map(|unit| unit.model.dependencies.len()).sum::<usize>();
+    let project_units = model
+        .repositories
+        .iter()
+        .map(|repository| repository.project_units.len())
+        .sum::<usize>();
+    let components = model
+        .repositories
+        .iter()
+        .flat_map(|repository| &repository.project_units)
+        .map(|unit| unit.model.components.len())
+        .sum::<usize>();
+    let entrypoints = model
+        .repositories
+        .iter()
+        .flat_map(|repository| &repository.project_units)
+        .map(|unit| unit.model.entrypoints.len())
+        .sum::<usize>();
+    let dependencies = model
+        .repositories
+        .iter()
+        .flat_map(|repository| &repository.project_units)
+        .map(|unit| unit.model.dependencies.len())
+        .sum::<usize>();
     Ok(json!({
         "workspaceId": model.id,
         "workspaceName": model.name,
@@ -157,12 +225,18 @@ fn workspace_status(arguments: &Value) -> Result<Value, String> {
 }
 
 fn current_workspace(workspace_id: &str) -> Result<reposlice_core::WorkspaceModel, String> {
-    load_cached_workspace_model(workspace_id).map_err(|error| error.to_string())?
-        .ok_or_else(|| "No valid cached workspace model is available; run an analysis first".to_string())
+    load_cached_workspace_model(workspace_id)
+        .map_err(|error| error.to_string())?
+        .ok_or_else(|| {
+            "No valid cached workspace model is available; run an analysis first".to_string()
+        })
 }
 
 fn required_string<'a>(arguments: &'a Value, name: &str) -> Result<&'a str, String> {
-    arguments.get(name).and_then(Value::as_str).filter(|value| !value.trim().is_empty())
+    arguments
+        .get(name)
+        .and_then(Value::as_str)
+        .filter(|value| !value.trim().is_empty())
         .ok_or_else(|| format!("Argument '{name}' is required"))
 }
 
@@ -175,7 +249,10 @@ struct HttpRequest {
 
 impl HttpRequest {
     fn header(&self, name: &str) -> Option<&str> {
-        self.headers.iter().find(|(key, _)| key == name).map(|(_, value)| value.as_str())
+        self.headers
+            .iter()
+            .find(|(key, _)| key == name)
+            .map(|(_, value)| value.as_str())
     }
 }
 
@@ -185,12 +262,26 @@ fn read_http_request(stream: &mut TcpStream) -> io::Result<HttpRequest> {
     let header_end;
     loop {
         let read = stream.read(&mut chunk)?;
-        if read == 0 { return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "connection closed")); }
+        if read == 0 {
+            return Err(io::Error::new(
+                io::ErrorKind::UnexpectedEof,
+                "connection closed",
+            ));
+        }
         buffer.extend_from_slice(&chunk[..read]);
-        if buffer.len() > MAX_REQUEST_BYTES { return Err(io::Error::new(io::ErrorKind::InvalidData, "request too large")); }
-        if let Some(index) = find_subslice(&buffer, b"\r\n\r\n") { header_end = index + 4; break; }
+        if buffer.len() > MAX_REQUEST_BYTES {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "request too large",
+            ));
+        }
+        if let Some(index) = find_subslice(&buffer, b"\r\n\r\n") {
+            header_end = index + 4;
+            break;
+        }
     }
-    let head = std::str::from_utf8(&buffer[..header_end]).map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "invalid HTTP headers"))?;
+    let head = std::str::from_utf8(&buffer[..header_end])
+        .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "invalid HTTP headers"))?;
     let mut lines = head.split("\r\n");
     let request_line = lines.next().unwrap_or_default();
     let mut request_parts = request_line.split_whitespace();
@@ -199,43 +290,93 @@ fn read_http_request(stream: &mut TcpStream) -> io::Result<HttpRequest> {
     let mut headers = Vec::new();
     let mut content_length = 0usize;
     for line in lines.filter(|line| !line.is_empty()) {
-        let Some((name, value)) = line.split_once(':') else { continue };
+        let Some((name, value)) = line.split_once(':') else {
+            continue;
+        };
         let key = name.trim().to_ascii_lowercase();
         let value = value.trim().to_string();
         if key == "content-length" {
-            content_length = value.parse::<usize>().map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "invalid content-length"))?;
+            content_length = value.parse::<usize>().map_err(|_| {
+                io::Error::new(io::ErrorKind::InvalidData, "invalid content-length")
+            })?;
         }
         headers.push((key, value));
     }
-    if content_length > MAX_REQUEST_BYTES { return Err(io::Error::new(io::ErrorKind::InvalidData, "request body too large")); }
+    if content_length > MAX_REQUEST_BYTES {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "request body too large",
+        ));
+    }
     while buffer.len() < header_end + content_length {
         let read = stream.read(&mut chunk)?;
-        if read == 0 { return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "incomplete request body")); }
+        if read == 0 {
+            return Err(io::Error::new(
+                io::ErrorKind::UnexpectedEof,
+                "incomplete request body",
+            ));
+        }
         buffer.extend_from_slice(&chunk[..read]);
-        if buffer.len() > MAX_REQUEST_BYTES + header_end { return Err(io::Error::new(io::ErrorKind::InvalidData, "request too large")); }
+        if buffer.len() > MAX_REQUEST_BYTES + header_end {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "request too large",
+            ));
+        }
     }
-    Ok(HttpRequest { method, path, headers, body: buffer[header_end..header_end + content_length].to_vec() })
+    Ok(HttpRequest {
+        method,
+        path,
+        headers,
+        body: buffer[header_end..header_end + content_length].to_vec(),
+    })
 }
 
-fn find_subslice(haystack: &[u8], needle: &[u8]) -> Option<usize> { haystack.windows(needle.len()).position(|window| window == needle) }
+fn find_subslice(haystack: &[u8], needle: &[u8]) -> Option<usize> {
+    haystack
+        .windows(needle.len())
+        .position(|window| window == needle)
+}
 
 fn is_json_content_type(value: &str) -> bool {
-    value.split(';').next().is_some_and(|media_type| media_type.trim().eq_ignore_ascii_case("application/json"))
+    value
+        .split(';')
+        .next()
+        .is_some_and(|media_type| media_type.trim().eq_ignore_ascii_case("application/json"))
 }
 
-fn write_json_rpc_error(stream: &mut TcpStream, id: Value, code: i64, message: &str) -> io::Result<()> {
-    write_http(stream, 200, &json!({"jsonrpc":"2.0","id":id,"error":{"code":code,"message":message}}).to_string())
+fn write_json_rpc_error(
+    stream: &mut TcpStream,
+    id: Value,
+    code: i64,
+    message: &str,
+) -> io::Result<()> {
+    write_http(
+        stream,
+        200,
+        &json!({"jsonrpc":"2.0","id":id,"error":{"code":code,"message":message}}).to_string(),
+    )
 }
 
 fn write_http(stream: &mut TcpStream, status: u16, body: &str) -> io::Result<()> {
-    let reason = match status { 200 => "OK", 400 => "Bad Request", 403 => "Forbidden", 404 => "Not Found", _ => "Error" };
+    let reason = match status {
+        200 => "OK",
+        400 => "Bad Request",
+        403 => "Forbidden",
+        404 => "Not Found",
+        _ => "Error",
+    };
     let response = format!("HTTP/1.1 {status} {reason}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\nX-Content-Type-Options: nosniff\r\nCache-Control: no-store\r\n\r\n{body}", body.len());
     stream.write_all(response.as_bytes())
 }
 
 fn option_value(name: &str) -> Option<String> {
     let arguments = env::args().collect::<Vec<_>>();
-    arguments.iter().position(|argument| argument == name).and_then(|index| arguments.get(index + 1)).cloned()
+    arguments
+        .iter()
+        .position(|argument| argument == name)
+        .and_then(|index| arguments.get(index + 1))
+        .cloned()
 }
 
 #[cfg(test)]
@@ -247,7 +388,9 @@ mod tests {
         let result = list_tools_result();
         assert_eq!(result["resultType"], "complete");
         assert_eq!(result["cacheScope"], "private");
-        assert!(result["tools"].as_array().is_some_and(|items| items.len() >= 5));
+        assert!(result["tools"]
+            .as_array()
+            .is_some_and(|items| items.len() >= 5));
     }
 
     #[test]
@@ -262,5 +405,4 @@ mod tests {
         assert!(is_json_content_type("application/json; charset=utf-8"));
         assert!(!is_json_content_type("text/plain"));
     }
-
 }

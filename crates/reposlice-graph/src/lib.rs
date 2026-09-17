@@ -90,38 +90,74 @@ impl WorkspaceGraphIntegrityReport {
 pub fn validate_workspace_graph(workspace: &WorkspaceModel) -> WorkspaceGraphIntegrityReport {
     let mut report = WorkspaceGraphIntegrityReport::default();
     for dependency in &workspace.cross_project_dependencies {
-        let source_unit = workspace.repositories.iter()
+        let source_unit = workspace
+            .repositories
+            .iter()
             .find(|repository| repository.id == dependency.source_repository_id)
-            .and_then(|repository| repository.project_units.iter().find(|unit| unit.id == dependency.source_project_unit_id));
-        let target_unit = workspace.repositories.iter()
+            .and_then(|repository| {
+                repository
+                    .project_units
+                    .iter()
+                    .find(|unit| unit.id == dependency.source_project_unit_id)
+            });
+        let target_unit = workspace
+            .repositories
+            .iter()
             .find(|repository| repository.id == dependency.target_repository_id)
-            .and_then(|repository| repository.project_units.iter().find(|unit| unit.id == dependency.target_project_unit_id));
+            .and_then(|repository| {
+                repository
+                    .project_units
+                    .iter()
+                    .find(|unit| unit.id == dependency.target_project_unit_id)
+            });
 
         let Some(source_unit) = source_unit else {
-            report.missing_source_units.insert(dependency.source_project_unit_id.clone());
+            report
+                .missing_source_units
+                .insert(dependency.source_project_unit_id.clone());
             continue;
         };
-        if !source_unit.model.components.iter().any(|component| component.id == dependency.source_component_id) {
+        if !source_unit
+            .model
+            .components
+            .iter()
+            .any(|component| component.id == dependency.source_component_id)
+        {
             report.missing_source_components.insert(format!(
-                "{}|{}", dependency.source_project_unit_id, dependency.source_component_id
+                "{}|{}",
+                dependency.source_project_unit_id, dependency.source_component_id
             ));
         }
 
         let Some(target_unit) = target_unit else {
-            report.missing_target_units.insert(dependency.target_project_unit_id.clone());
+            report
+                .missing_target_units
+                .insert(dependency.target_project_unit_id.clone());
             continue;
         };
         if let Some(component_id) = &dependency.target_component_id {
-            if !target_unit.model.components.iter().any(|component| component.id == *component_id) {
+            if !target_unit
+                .model
+                .components
+                .iter()
+                .any(|component| component.id == *component_id)
+            {
                 report.missing_target_components.insert(format!(
-                    "{}|{}", dependency.target_project_unit_id, component_id
+                    "{}|{}",
+                    dependency.target_project_unit_id, component_id
                 ));
             }
         }
         if let Some(entrypoint_id) = &dependency.target_entrypoint_id {
-            if !target_unit.model.entrypoints.iter().any(|entrypoint| entrypoint.id == *entrypoint_id) {
+            if !target_unit
+                .model
+                .entrypoints
+                .iter()
+                .any(|entrypoint| entrypoint.id == *entrypoint_id)
+            {
                 report.missing_target_entrypoints.insert(format!(
-                    "{}|{}", dependency.target_project_unit_id, entrypoint_id
+                    "{}|{}",
+                    dependency.target_project_unit_id, entrypoint_id
                 ));
             }
         }
@@ -216,7 +252,14 @@ pub fn dependency_cycles(model: &ProjectModel) -> Vec<Vec<String>> {
 
     for node in &nodes {
         if color.get(node).copied().unwrap_or(0) == 0 {
-            visit(node, &adjacency, &nodes, &mut color, &mut stack, &mut cycles);
+            visit(
+                node,
+                &adjacency,
+                &nodes,
+                &mut color,
+                &mut stack,
+                &mut cycles,
+            );
         }
     }
     cycles.into_iter().collect()
@@ -263,7 +306,10 @@ pub fn dependency_slice(model: &ProjectModel, start_id: &str) -> DependencySlice
         })
         .cloned()
         .collect();
-    DependencySlice { nodes, dependencies }
+    DependencySlice {
+        nodes,
+        dependencies,
+    }
 }
 
 pub fn reverse_dependency_closure(model: &ProjectModel, start_id: &str) -> BTreeSet<String> {
@@ -287,11 +333,7 @@ pub fn impact_slice(model: &ProjectModel, start_id: &str) -> DependencySlice {
         if !result.nodes.insert(current.clone()) {
             continue;
         }
-        for dependency in reverse
-            .get(current.as_str())
-            .into_iter()
-            .flatten()
-        {
+        for dependency in reverse.get(current.as_str()).into_iter().flatten() {
             result.dependencies.push((*dependency).clone());
             if !result.nodes.contains(&dependency.source_id) {
                 queue.push_back(dependency.source_id.clone());
@@ -505,25 +547,31 @@ pub fn match_workspace_package_dependencies(
         })
         .collect::<Vec<_>>();
 
-    let target_name_counts = targets.iter().fold(
-        BTreeMap::<&str, usize>::new(),
-        |mut counts, target| {
-            *counts.entry(target.name.as_str()).or_default() += 1;
-            counts
-        },
-    );
+    let target_name_counts =
+        targets
+            .iter()
+            .fold(BTreeMap::<&str, usize>::new(), |mut counts, target| {
+                *counts.entry(target.name.as_str()).or_default() += 1;
+                counts
+            });
 
     let mut result = Vec::new();
     for repository in &workspace.repositories {
         for unit in &repository.project_units {
             for target in &targets {
-                if target_name_counts.get(target.name.as_str()).copied().unwrap_or(0) != 1 {
+                if target_name_counts
+                    .get(target.name.as_str())
+                    .copied()
+                    .unwrap_or(0)
+                    != 1
+                {
                     continue;
                 }
                 if repository.id == target.repository_id && unit.id == target.project_unit_id {
                     continue;
                 }
-                let Some(manifest) = declared_workspace_dependency(Path::new(&unit.root), &target.name)
+                let Some(manifest) =
+                    declared_workspace_dependency(Path::new(&unit.root), &target.name)
                 else {
                     continue;
                 };
@@ -591,9 +639,14 @@ fn package_identity(root: &Path) -> Option<(String, PathBuf)> {
 fn declared_workspace_dependency(root: &Path, target_name: &str) -> Option<PathBuf> {
     let package = root.join("package.json");
     if let Ok(content) = read_source_text(&package) {
-        if ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]
-            .iter()
-            .any(|section| json_object_contains_key(&content, section, target_name))
+        if [
+            "dependencies",
+            "devDependencies",
+            "peerDependencies",
+            "optionalDependencies",
+        ]
+        .iter()
+        .any(|section| json_object_contains_key(&content, section, target_name))
         {
             return Some(package);
         }
@@ -785,7 +838,12 @@ fn importing_component(unit: &ProjectUnit, target_name: &str) -> Option<String> 
                 .components
                 .iter()
                 .find(|component| component.file == *file && component.kind.as_str() != "file")
-                .or_else(|| unit.model.components.iter().find(|component| component.file == *file))
+                .or_else(|| {
+                    unit.model
+                        .components
+                        .iter()
+                        .find(|component| component.file == *file)
+                })
             {
                 return Some(component.id.clone());
             }
@@ -806,7 +864,12 @@ fn representative_component(unit: &ProjectUnit) -> Option<&str> {
                 .find(|component| component.kind.as_str() != "file")
                 .map(|component| component.id.as_str())
         })
-        .or_else(|| unit.model.components.first().map(|component| component.id.as_str()))
+        .or_else(|| {
+            unit.model
+                .components
+                .first()
+                .map(|component| component.id.as_str())
+        })
 }
 
 fn component_for_file(unit: &ProjectUnit, file: &Path) -> Option<String> {
@@ -815,8 +878,7 @@ fn component_for_file(unit: &ProjectUnit, file: &Path) -> Option<String> {
         .components
         .iter()
         .find(|component| {
-            fs::canonicalize(&component.file)
-                .unwrap_or_else(|_| PathBuf::from(&component.file))
+            fs::canonicalize(&component.file).unwrap_or_else(|_| PathBuf::from(&component.file))
                 == canonical
         })
         .map(|component| component.id.clone())
@@ -824,7 +886,12 @@ fn component_for_file(unit: &ProjectUnit, file: &Path) -> Option<String> {
 
 fn json_string_field(content: &str, key: &str) -> Option<String> {
     let marker = format!("\"{key}\"");
-    let rest = content.split_once(&marker)?.1.split_once(':')?.1.trim_start();
+    let rest = content
+        .split_once(&marker)?
+        .1
+        .split_once(':')?
+        .1
+        .trim_start();
     let rest = rest.strip_prefix('"')?;
     Some(rest.split('"').next()?.to_string())
 }
@@ -858,13 +925,16 @@ fn resolve_cross_target_component(
     unit: &ProjectUnit,
 ) -> Option<String> {
     dependency.target_component_id.clone().or_else(|| {
-        dependency.target_entrypoint_id.as_deref().and_then(|entrypoint_id| {
-            unit.model
-                .entrypoints
-                .iter()
-                .find(|entrypoint| entrypoint.id == entrypoint_id)
-                .map(|entrypoint| entrypoint.component_id.clone())
-        })
+        dependency
+            .target_entrypoint_id
+            .as_deref()
+            .and_then(|entrypoint_id| {
+                unit.model
+                    .entrypoints
+                    .iter()
+                    .find(|entrypoint| entrypoint.id == entrypoint_id)
+                    .map(|entrypoint| entrypoint.component_id.clone())
+            })
     })
 }
 
@@ -1061,7 +1131,8 @@ pub fn workspace_dependency_slice(
             .flatten()
         {
             if let Some(unit) = units.get(dependency.target_project_unit_id.as_str()) {
-                if let Some(target_component_id) = resolve_cross_target_component(dependency, unit) {
+                if let Some(target_component_id) = resolve_cross_target_component(dependency, unit)
+                {
                     result.dependencies.push(ScopedDependency {
                         source_project_unit_id: unit_id.clone(),
                         source_component_id: current.clone(),
@@ -1143,7 +1214,8 @@ pub fn workspace_impact_slice(
         let Some(target_unit) = units.get(dependency.target_project_unit_id.as_str()) else {
             continue;
         };
-        let Some(target_component_id) = resolve_cross_target_component(dependency, target_unit) else {
+        let Some(target_component_id) = resolve_cross_target_component(dependency, target_unit)
+        else {
             continue;
         };
         reverse
@@ -1205,13 +1277,28 @@ pub fn scoped_node(project_unit_id: &str, component_id: &str) -> String {
 pub fn export_workspace_mermaid(model: &WorkspaceModel) -> String {
     let mut lines = vec!["flowchart LR".to_string()];
     for repository in &model.repositories {
-        lines.push(format!("  {}[\"{}\"]", export_mermaid_id(&repository.id), export_escape_mermaid(&repository.name)));
+        lines.push(format!(
+            "  {}[\"{}\"]",
+            export_mermaid_id(&repository.id),
+            export_escape_mermaid(&repository.name)
+        ));
     }
     let mut seen = BTreeSet::new();
     for dependency in &model.cross_project_dependencies {
-        let edge = format!("{}:{}:{}", dependency.source_repository_id, dependency.target_repository_id, dependency.kind.as_str());
+        let edge = format!(
+            "{}:{}:{}",
+            dependency.source_repository_id,
+            dependency.target_repository_id,
+            dependency.kind.as_str()
+        );
         if seen.insert(edge) {
-            lines.push(format!("  {} -->|\"{} {}%\"| {}", export_mermaid_id(&dependency.source_repository_id), dependency.kind.as_str(), dependency.confidence, export_mermaid_id(&dependency.target_repository_id)));
+            lines.push(format!(
+                "  {} -->|\"{} {}%\"| {}",
+                export_mermaid_id(&dependency.source_repository_id),
+                dependency.kind.as_str(),
+                dependency.confidence,
+                export_mermaid_id(&dependency.target_repository_id)
+            ));
         }
     }
     lines.join("\n")
@@ -1220,7 +1307,11 @@ pub fn export_workspace_mermaid(model: &WorkspaceModel) -> String {
 pub fn export_workspace_graphml(model: &WorkspaceModel) -> String {
     let mut xml = String::from("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\">\n  <graph id=\"reposlice\" edgedefault=\"directed\">\n");
     for repository in &model.repositories {
-        xml.push_str(&format!("    <node id=\"{}\"><data key=\"label\">{}</data></node>\n", export_xml_escape(&repository.id), export_xml_escape(&repository.name)));
+        xml.push_str(&format!(
+            "    <node id=\"{}\"><data key=\"label\">{}</data></node>\n",
+            export_xml_escape(&repository.id),
+            export_xml_escape(&repository.name)
+        ));
     }
     for (index, dependency) in model.cross_project_dependencies.iter().enumerate() {
         xml.push_str(&format!("    <edge id=\"e{}\" source=\"{}\" target=\"{}\"><data key=\"kind\">{}</data><data key=\"confidence\">{}</data></edge>\n", index, export_xml_escape(&dependency.source_repository_id), export_xml_escape(&dependency.target_repository_id), dependency.kind.as_str(), dependency.confidence));
@@ -1229,9 +1320,30 @@ pub fn export_workspace_graphml(model: &WorkspaceModel) -> String {
     xml
 }
 
-fn export_mermaid_id(value: &str) -> String { format!("n_{}", value.chars().map(|character| if character.is_ascii_alphanumeric() { character } else { '_' }).collect::<String>()) }
-fn export_escape_mermaid(value: &str) -> String { value.replace('"', "'").replace('\n', " ") }
-fn export_xml_escape(value: &str) -> String { value.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;").replace('\'', "&apos;") }
+fn export_mermaid_id(value: &str) -> String {
+    format!(
+        "n_{}",
+        value
+            .chars()
+            .map(|character| if character.is_ascii_alphanumeric() {
+                character
+            } else {
+                '_'
+            })
+            .collect::<String>()
+    )
+}
+fn export_escape_mermaid(value: &str) -> String {
+    value.replace('"', "'").replace('\n', " ")
+}
+fn export_xml_escape(value: &str) -> String {
+    value
+        .replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&apos;")
+}
 
 #[cfg(test)]
 mod tests {
@@ -1263,16 +1375,31 @@ mod tests {
             components: vec![component("a"), component("b"), component("c")],
             entrypoints: vec![],
             dependencies: vec![
-                Dependency { source_id: "a".into(), target_id: "b".into(), kind: DependencyKind::Calls },
-                Dependency { source_id: "b".into(), target_id: "c".into(), kind: DependencyKind::Calls },
-                Dependency { source_id: "c".into(), target_id: "a".into(), kind: DependencyKind::Calls },
+                Dependency {
+                    source_id: "a".into(),
+                    target_id: "b".into(),
+                    kind: DependencyKind::Calls,
+                },
+                Dependency {
+                    source_id: "b".into(),
+                    target_id: "c".into(),
+                    kind: DependencyKind::Calls,
+                },
+                Dependency {
+                    source_id: "c".into(),
+                    target_id: "a".into(),
+                    kind: DependencyKind::Calls,
+                },
             ],
             analysis: Default::default(),
         };
         let report = validate_dependency_graph(&model);
         assert!(report.passed());
         assert!(!report.is_clean());
-        assert_eq!(report.cycles, vec![vec!["a".to_string(), "b".to_string(), "c".to_string()]]);
+        assert_eq!(
+            report.cycles,
+            vec![vec!["a".to_string(), "b".to_string(), "c".to_string()]]
+        );
     }
 
     #[test]
@@ -1366,12 +1493,12 @@ mod tests {
         let closure = workspace_dependency_closure(&workspace, "front", "front-component");
         assert!(closure.contains(&scoped_node("back", "controller")));
         assert!(closure.contains(&scoped_node("back", "service")));
-        let impact = workspace_impact_slice(
-            &workspace,
-            &[("back".to_string(), "service".to_string())],
-        );
+        let impact =
+            workspace_impact_slice(&workspace, &[("back".to_string(), "service".to_string())]);
         assert!(impact.nodes.contains(&scoped_node("back", "controller")));
-        assert!(impact.nodes.contains(&scoped_node("front", "front-component")));
+        assert!(impact
+            .nodes
+            .contains(&scoped_node("front", "front-component")));
         assert!(impact
             .dependencies
             .iter()
@@ -1543,7 +1670,11 @@ mod tests {
         .unwrap();
         let app_file = app_root.join("src/app.ts");
         let shared_file = shared_root.join("src/index.ts");
-        std::fs::write(&app_file, "import { value } from '@acme/shared';\nconsole.log(value);\n").unwrap();
+        std::fs::write(
+            &app_file,
+            "import { value } from '@acme/shared';\nconsole.log(value);\n",
+        )
+        .unwrap();
         std::fs::write(&shared_file, "export const value = 1;\n").unwrap();
 
         let mut app = unit("app-unit", "app-component", vec![], vec![], vec![]);
@@ -1586,19 +1717,26 @@ mod tests {
             .unwrap();
         assert_eq!(package_dependency.source_project_unit_id, "app-unit");
         assert_eq!(package_dependency.target_project_unit_id, "shared-unit");
-        assert_eq!(package_dependency.target_component_id.as_deref(), Some("shared-component"));
+        assert_eq!(
+            package_dependency.target_component_id.as_deref(),
+            Some("shared-component")
+        );
         assert_eq!(package_dependency.confidence, 100);
 
         let slice = workspace_dependency_slice(
             &workspace,
             &[("app-unit".to_string(), "app-component".to_string())],
         );
-        assert!(slice.nodes.contains(&scoped_node("shared-unit", "shared-component")));
+        assert!(slice
+            .nodes
+            .contains(&scoped_node("shared-unit", "shared-component")));
         let impact = workspace_impact_slice(
             &workspace,
             &[("shared-unit".to_string(), "shared-component".to_string())],
         );
-        assert!(impact.nodes.contains(&scoped_node("app-unit", "app-component")));
+        assert!(impact
+            .nodes
+            .contains(&scoped_node("app-unit", "app-component")));
         let _ = std::fs::remove_dir_all(&root);
     }
 
@@ -1662,7 +1800,10 @@ mod tests {
         };
         let dependencies = match_workspace_package_dependencies(&workspace);
         assert_eq!(dependencies.len(), 1);
-        assert_eq!(dependencies[0].kind, CrossProjectDependencyKind::WorkspacePackage);
+        assert_eq!(
+            dependencies[0].kind,
+            CrossProjectDependencyKind::WorkspacePackage
+        );
         assert_eq!(dependencies[0].confidence, 100);
         let _ = std::fs::remove_dir_all(root);
     }

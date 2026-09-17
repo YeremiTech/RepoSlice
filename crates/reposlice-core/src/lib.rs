@@ -29,17 +29,50 @@ impl CompatibilityLevel {
     }
 }
 
-
 pub const DEFAULT_MAX_SOURCE_SIZE: u64 = 2 * 1024 * 1024;
 pub const DEFAULT_MAX_INDEXED_TEXT_BYTES: usize = 64 * 1024 * 1024;
 pub const DEFAULT_MAX_FALLBACK_FILES: usize = 50_000;
 
 const DEFAULT_EXCLUDED_DIRECTORIES: &[&str] = &[
-    ".git", ".reposlice", "node_modules", "target", "dist", "build", "out", "bin", "obj",
-    "vendor", ".venv", "venv", ".gradle", "coverage", ".idea", ".vscode", ".next", ".nuxt",
-    ".angular", ".svelte-kit", ".astro", ".turbo", ".nx", ".output", ".vercel", ".serverless",
-    ".wrangler", ".dart_tool", ".terraform", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".tox",
-    "__pycache__", ".cache", "_build", "deps", "DerivedData", "storage",
+    ".git",
+    ".reposlice",
+    "node_modules",
+    "target",
+    "dist",
+    "build",
+    "out",
+    "bin",
+    "obj",
+    "vendor",
+    ".venv",
+    "venv",
+    ".gradle",
+    "coverage",
+    ".idea",
+    ".vscode",
+    ".next",
+    ".nuxt",
+    ".angular",
+    ".svelte-kit",
+    ".astro",
+    ".turbo",
+    ".nx",
+    ".output",
+    ".vercel",
+    ".serverless",
+    ".wrangler",
+    ".dart_tool",
+    ".terraform",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".tox",
+    "__pycache__",
+    ".cache",
+    "_build",
+    "deps",
+    "DerivedData",
+    "storage",
 ];
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -77,11 +110,7 @@ impl ScanPolicy {
         false
     }
 
-    pub fn is_excluded_from(
-        &self,
-        root: &std::path::Path,
-        path: &std::path::Path,
-    ) -> bool {
+    pub fn is_excluded_from(&self, root: &std::path::Path, path: &std::path::Path) -> bool {
         let relative = path.strip_prefix(root).unwrap_or(path);
         self.is_excluded(relative)
     }
@@ -99,7 +128,6 @@ impl ScanPolicy {
         !self.is_excluded_from(root, path) && size <= self.max_source_size
     }
 }
-
 
 #[derive(Clone)]
 struct CachedSourceText {
@@ -166,7 +194,10 @@ pub fn clear_source_text_cache() {
 }
 
 pub fn source_text_cache_bytes() -> usize {
-    source_text_cache().lock().map(|cache| cache.bytes).unwrap_or(0)
+    source_text_cache()
+        .lock()
+        .map(|cache| cache.bytes)
+        .unwrap_or(0)
 }
 
 fn source_text_cache() -> &'static Mutex<SharedSourceTextCache> {
@@ -190,9 +221,15 @@ pub struct Technology {
 impl Default for Technology {
     fn default() -> Self {
         Self {
-            category: String::new(), name: String::new(), classification: String::new(),
-            confidence: 0, evidence: Vec::new(), scope: "project-unit".into(),
-            repository_id: None, project_unit_id: None, detected_from: Vec::new(),
+            category: String::new(),
+            name: String::new(),
+            classification: String::new(),
+            confidence: 0,
+            evidence: Vec::new(),
+            scope: "project-unit".into(),
+            repository_id: None,
+            project_unit_id: None,
+            detected_from: Vec::new(),
             detection_kind: "DIRECT".into(),
         }
     }
@@ -205,12 +242,20 @@ pub fn technology_classification(category: &str, name: &str) -> (&'static str, &
         ("language", "html") | ("language", "xml") => ("Language", "Markup Language"),
         ("language", "css") | ("language", "scss") => ("Language", "Style Language"),
         ("language", _) => ("Language", "Programming Language"),
-        ("framework", n) if ["angular", "vue", "nuxt", "svelte", "sveltekit", "nextjs"].contains(&n) => ("Framework", "Frontend Framework"),
+        ("framework", n)
+            if ["angular", "vue", "nuxt", "svelte", "sveltekit", "nextjs"].contains(&n) =>
+        {
+            ("Framework", "Frontend Framework")
+        }
         ("framework", _) => ("Framework", "Backend Framework"),
         ("library", n) if n == "react" => ("Library", "UI Library"),
-        ("data", n) if ["hibernate", "prisma", "typeorm", "sequelize", "jpa"].contains(&n) => ("Data", "ORM"),
+        ("data", n) if ["hibernate", "prisma", "typeorm", "sequelize", "jpa"].contains(&n) => {
+            ("Data", "ORM")
+        }
         ("data", _) => ("Data", "Database"),
-        ("build", n) if ["npm", "pnpm", "yarn", "composer"].contains(&n) => ("Build", "Package Manager"),
+        ("build", n) if ["npm", "pnpm", "yarn", "composer"].contains(&n) => {
+            ("Build", "Package Manager")
+        }
         ("build", n) if n == "webpack" => ("Build", "Bundler"),
         ("build", _) => ("Build", "Build Tool"),
         ("runtime", _) => ("Runtime", "Runtime"),
@@ -314,7 +359,11 @@ pub struct FrameworkDetection {
 
 impl Default for FrameworkDetection {
     fn default() -> Self {
-        Self { name: String::new(), confidence: 0, evidence: Vec::new() }
+        Self {
+            name: String::new(),
+            confidence: 0,
+            evidence: Vec::new(),
+        }
     }
 }
 
@@ -805,18 +854,14 @@ mod tests {
         }
         assert!(!policy.is_excluded(std::path::Path::new("project/src/main.rs")));
         let cloned_root = std::path::Path::new("/home/user/.reposlice/repositories/project");
-        assert!(!policy.is_excluded_from(
-            cloned_root,
-            &cloned_root.join("src/main.rs")
-        ));
+        assert!(!policy.is_excluded_from(cloned_root, &cloned_root.join("src/main.rs")));
         assert!(policy.is_excluded_from(
             cloned_root,
             &cloned_root.join(".reposlice/cache/model.json")
         ));
-        assert!(policy.is_excluded_from(
-            cloned_root,
-            &cloned_root.join("node_modules/pkg/index.js")
-        ));
+        assert!(
+            policy.is_excluded_from(cloned_root, &cloned_root.join("node_modules/pkg/index.js"))
+        );
         assert!(policy.accepts_source_from(
             cloned_root,
             &cloned_root.join("src/main.rs"),
@@ -830,10 +875,8 @@ mod tests {
 
     #[test]
     fn shared_source_text_cache_is_bounded_and_clearable() {
-        let root = std::env::temp_dir().join(format!(
-            "reposlice-core-cache-{}",
-            std::process::id()
-        ));
+        let root =
+            std::env::temp_dir().join(format!("reposlice-core-cache-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
         std::fs::create_dir_all(&root).unwrap();
         let source = root.join("source.rs");
@@ -850,10 +893,22 @@ mod tests {
 
     #[test]
     fn classifies_common_technology_taxonomy() {
-        assert_eq!(technology_classification("language", "SQL"), ("Language", "Query Language"));
-        assert_eq!(technology_classification("framework", "Angular"), ("Framework", "Frontend Framework"));
-        assert_eq!(technology_classification("library", "React"), ("Library", "UI Library"));
-        assert_eq!(technology_classification("build", "Webpack"), ("Build", "Bundler"));
+        assert_eq!(
+            technology_classification("language", "SQL"),
+            ("Language", "Query Language")
+        );
+        assert_eq!(
+            technology_classification("framework", "Angular"),
+            ("Framework", "Frontend Framework")
+        );
+        assert_eq!(
+            technology_classification("library", "React"),
+            ("Library", "UI Library")
+        );
+        assert_eq!(
+            technology_classification("build", "Webpack"),
+            ("Build", "Bundler")
+        );
     }
 
     #[test]
@@ -912,13 +967,7 @@ impl Sha256Hasher {
     pub fn new() -> Self {
         Self {
             state: [
-                0x6a09e667,
-                0xbb67ae85,
-                0x3c6ef372,
-                0xa54ff53a,
-                0x510e527f,
-                0x9b05688c,
-                0x1f83d9ab,
+                0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab,
                 0x5be0cd19,
             ],
             buffer: [0; 64],
@@ -975,17 +1024,16 @@ impl Sha256Hasher {
 
     fn process_block(&mut self, block: &[u8; 64]) {
         const K: [u32; 64] = [
-            0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1,
-            0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
-            0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786,
-            0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-            0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147,
-            0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
-            0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b,
-            0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-            0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a,
-            0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
-            0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+            0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4,
+            0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe,
+            0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f,
+            0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+            0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc,
+            0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b,
+            0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116,
+            0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+            0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7,
+            0xc67178f2,
         ];
         let mut w = [0u32; 64];
         for (index, chunk) in block.chunks_exact(4).take(16).enumerate() {

@@ -105,13 +105,19 @@ pub fn create_capsule(
         let metadata = fs::symlink_metadata(&source).map_err(|error| {
             io::Error::new(
                 error.kind(),
-                format!("Component source file cannot be inspected: {}", source.display()),
+                format!(
+                    "Component source file cannot be inspected: {}",
+                    source.display()
+                ),
             )
         })?;
         if metadata.file_type().is_symlink() {
             return Err(io::Error::new(
                 io::ErrorKind::PermissionDenied,
-                format!("Component source symlinks are not copied: {}", source.display()),
+                format!(
+                    "Component source symlinks are not copied: {}",
+                    source.display()
+                ),
             ));
         }
         if !metadata.file_type().is_file() {
@@ -244,13 +250,19 @@ pub fn create_workspace_capsule(
                 let metadata = fs::symlink_metadata(&source).map_err(|error| {
                     io::Error::new(
                         error.kind(),
-                        format!("Component source file cannot be inspected: {}", source.display()),
+                        format!(
+                            "Component source file cannot be inspected: {}",
+                            source.display()
+                        ),
                     )
                 })?;
                 if metadata.file_type().is_symlink() {
                     return Err(io::Error::new(
                         io::ErrorKind::PermissionDenied,
-                        format!("Component source symlinks are not copied: {}", source.display()),
+                        format!(
+                            "Component source symlinks are not copied: {}",
+                            source.display()
+                        ),
                     ));
                 }
                 if !metadata.file_type().is_file() {
@@ -838,8 +850,7 @@ fn contains_probable_secret(content: &str) -> bool {
         let value = line[separator + 1..]
             .trim()
             .trim_matches(|character: char| {
-                character.is_whitespace()
-                    || matches!(character, '\'' | '"' | ',' | ';' | '}' | ']')
+                character.is_whitespace() || matches!(character, '\'' | '"' | ',' | ';' | '}' | ']')
             })
             .trim();
         if value.len() < 8 {
@@ -895,7 +906,10 @@ fn collect_fingerprint_files(
     if fs::symlink_metadata(current)?.file_type().is_symlink() {
         return Err(io::Error::new(
             io::ErrorKind::PermissionDenied,
-            format!("Capsule integrity input contains a symlink: {}", current.display()),
+            format!(
+                "Capsule integrity input contains a symlink: {}",
+                current.display()
+            ),
         ));
     }
     if current.is_file() {
@@ -979,10 +993,8 @@ mod tests {
 
     #[test]
     fn fingerprint_changes_when_capsule_source_changes() {
-        let root = std::env::temp_dir().join(format!(
-            "reposlice-fingerprint-{}",
-            std::process::id()
-        ));
+        let root =
+            std::env::temp_dir().join(format!("reposlice-fingerprint-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
         fs::create_dir_all(&root).unwrap();
         fs::write(root.join("a.txt"), "one").unwrap();
@@ -995,10 +1007,8 @@ mod tests {
 
     #[test]
     fn identifies_probable_credentials_in_configuration() {
-        let root = std::env::temp_dir().join(format!(
-            "reposlice-secret-config-{}",
-            std::process::id()
-        ));
+        let root =
+            std::env::temp_dir().join(format!("reposlice-secret-config-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
         fs::create_dir_all(&root).unwrap();
         let config = root.join("application.properties");
@@ -1007,9 +1017,17 @@ mod tests {
         fs::write(&config, "db.password=${DB_PASSWORD}").unwrap();
         assert!(!is_sensitive_source(&config, &root));
         let package = root.join("package.json");
-        fs::write(&package, "{\n  \"jsonwebtoken\": \"9.0.2\",\n  \"name\": \"demo-app\"\n}").unwrap();
+        fs::write(
+            &package,
+            "{\n  \"jsonwebtoken\": \"9.0.2\",\n  \"name\": \"demo-app\"\n}",
+        )
+        .unwrap();
         assert!(!is_sensitive_source(&package, &root));
-        fs::write(&package, "{\n  \"auth_token\": \"actual-secret-token-value\"\n}").unwrap();
+        fs::write(
+            &package,
+            "{\n  \"auth_token\": \"actual-secret-token-value\"\n}",
+        )
+        .unwrap();
         assert!(is_sensitive_source(&package, &root));
         let _ = fs::remove_dir_all(root);
     }
@@ -1083,10 +1101,12 @@ mod tests {
         };
         let error = create_capsule(&model, "component:linked", &output).unwrap_err();
         assert_eq!(error.kind(), io::ErrorKind::PermissionDenied);
-        assert!(!output.join(scoped_capsule_name(
-            "component:linked",
-            &format!("{}\0component:linked", model.root)
-        )).exists());
+        assert!(!output
+            .join(scoped_capsule_name(
+                "component:linked",
+                &format!("{}\0component:linked", model.root)
+            ))
+            .exists());
         let _ = fs::remove_dir_all(root);
     }
 

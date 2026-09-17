@@ -1,7 +1,7 @@
 use reposlice_core::{
-    stable_hash, read_source_text, AnalysisContribution, AnalysisMetadata, Component, ComponentKind, Dependency,
-    DependencyKind, Evidence, EvidenceKind, LanguageAnalyzer, ScanPolicy, SymbolMetadata,
-    DEFAULT_MAX_SOURCE_SIZE,
+    read_source_text, stable_hash, AnalysisContribution, AnalysisMetadata, Component,
+    ComponentKind, Dependency, DependencyKind, Evidence, EvidenceKind, LanguageAnalyzer,
+    ScanPolicy, SymbolMetadata, DEFAULT_MAX_SOURCE_SIZE,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -37,7 +37,9 @@ impl LanguageAnalyzer for JavaLanguageAnalyzer {
                     .strip_prefix("java:")
                     .map(|value| value.split('#').next().unwrap_or(value).to_string());
                 let namespace = qualified_name.as_ref().and_then(|value| {
-                    value.rsplit_once('.').map(|(namespace, _)| namespace.to_string())
+                    value
+                        .rsplit_once('.')
+                        .map(|(namespace, _)| namespace.to_string())
                 });
                 SymbolMetadata {
                     symbol_id: component.id.clone(),
@@ -58,7 +60,10 @@ impl LanguageAnalyzer for JavaLanguageAnalyzer {
         Ok(AnalysisContribution {
             components,
             dependencies,
-            metadata: AnalysisMetadata { symbols, ..Default::default() },
+            metadata: AnalysisMetadata {
+                symbols,
+                ..Default::default()
+            },
             ..Default::default()
         })
     }
