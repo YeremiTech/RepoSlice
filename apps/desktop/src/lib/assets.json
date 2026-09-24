@@ -1,6 +1,15 @@
 {
   "technologies": [
     {
+      "slug": "azure-sql-database",
+      "category": "languages",
+      "path": "fallback/language.png",
+      "aliases": [
+        "SQL Database"
+      ],
+      "specific": false
+    },
+    {
       "slug": "c",
       "category": "languages",
       "path": "technologies/languages/c.png",
@@ -8,11 +17,21 @@
       "specific": true
     },
     {
+      "slug": "clojure",
+      "category": "languages",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Clojure"
+      ],
+      "specific": false
+    },
+    {
       "slug": "cpp",
       "category": "languages",
       "path": "technologies/languages/cpp.png",
       "aliases": [
-        "C++"
+        "C++",
+        "C Plus Plus"
       ],
       "specific": true
     },
@@ -21,7 +40,18 @@
       "category": "languages",
       "path": "technologies/languages/csharp.png",
       "aliases": [
-        "C#"
+        "C#",
+        "C Sharp"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "css",
+      "category": "languages",
+      "path": "technologies/languages/css.png",
+      "aliases": [
+        "CSS",
+        "CSS3"
       ],
       "specific": true
     },
@@ -47,6 +77,26 @@
       "specific": true
     },
     {
+      "slug": "haskell",
+      "category": "languages",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Haskell"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "html5",
+      "category": "languages",
+      "path": "technologies/languages/html.png",
+      "aliases": [
+        "HTML5",
+        "HTML",
+        "HTML 5"
+      ],
+      "specific": true
+    },
+    {
       "slug": "java",
       "category": "languages",
       "path": "technologies/languages/java.png",
@@ -57,7 +107,9 @@
       "slug": "javascript",
       "category": "languages",
       "path": "technologies/languages/javascript.png",
-      "aliases": [],
+      "aliases": [
+        "JS"
+      ],
       "specific": true
     },
     {
@@ -96,6 +148,17 @@
       "specific": true
     },
     {
+      "slug": "sass",
+      "category": "languages",
+      "path": "technologies/languages/sass.png",
+      "aliases": [
+        "Sass",
+        "SCSS",
+        "SASS"
+      ],
+      "specific": true
+    },
+    {
       "slug": "scala",
       "category": "languages",
       "path": "technologies/languages/scala.png",
@@ -108,6 +171,15 @@
       "path": "technologies/languages/shell.png",
       "aliases": [],
       "specific": true
+    },
+    {
+      "slug": "solidity",
+      "category": "languages",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Solidity"
+      ],
+      "specific": false
     },
     {
       "slug": "sql",
@@ -127,14 +199,55 @@
       "slug": "typescript",
       "category": "languages",
       "path": "technologies/languages/typescript.png",
-      "aliases": [],
+      "aliases": [
+        "TS"
+      ],
       "specific": true
+    },
+    {
+      "slug": "xml",
+      "category": "languages",
+      "path": "fallback/language.png",
+      "aliases": [
+        "XML"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "zig",
+      "category": "languages",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Zig"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "adonisjs",
+      "category": "frameworks",
+      "path": "technologies/frameworks/adonisjs.png",
+      "aliases": [
+        "Adonis.js",
+        "Adonis JS"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "alpinedotjs",
+      "category": "frameworks",
+      "path": "fallback/framework.png",
+      "aliases": [
+        "Alpine.js"
+      ],
+      "specific": false
     },
     {
       "slug": "angular",
       "category": "frameworks",
       "path": "technologies/frameworks/angular.png",
-      "aliases": [],
+      "aliases": [
+        "Angular Framework"
+      ],
       "specific": true
     },
     {
@@ -162,10 +275,30 @@
       "specific": true
     },
     {
+      "slug": "bootstrap",
+      "category": "frameworks",
+      "path": "technologies/frameworks/bootstrap.png",
+      "aliases": [
+        "Bootstrap",
+        "Bootstrap CSS"
+      ],
+      "specific": true
+    },
+    {
       "slug": "django",
       "category": "frameworks",
       "path": "technologies/frameworks/django.png",
       "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "ember",
+      "category": "frameworks",
+      "path": "technologies/frameworks/ember.png",
+      "aliases": [
+        "Ember.js",
+        "EmberJS"
+      ],
       "specific": true
     },
     {
@@ -197,6 +330,36 @@
       "specific": true
     },
     {
+      "slug": "gatsby",
+      "category": "frameworks",
+      "path": "technologies/frameworks/gatsby.png",
+      "aliases": [
+        "Gatsby.js",
+        "GatsbyJS"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "hono",
+      "category": "frameworks",
+      "path": "technologies/frameworks/hono.png",
+      "aliases": [
+        "Hono",
+        "Hono.js"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "ionic",
+      "category": "frameworks",
+      "path": "technologies/frameworks/ionic.png",
+      "aliases": [
+        "Ionic Framework",
+        "Ionic Angular"
+      ],
+      "specific": true
+    },
+    {
       "slug": "ktor",
       "category": "frameworks",
       "path": "technologies/frameworks/ktor.png",
@@ -211,6 +374,15 @@
       "specific": true
     },
     {
+      "slug": "less",
+      "category": "frameworks",
+      "path": "fallback/framework.png",
+      "aliases": [
+        "Less"
+      ],
+      "specific": false
+    },
+    {
       "slug": "micronaut",
       "category": "frameworks",
       "path": "technologies/frameworks/micronaut.png",
@@ -218,11 +390,21 @@
       "specific": true
     },
     {
+      "slug": "mui",
+      "category": "frameworks",
+      "path": "fallback/framework.png",
+      "aliases": [
+        "Material UI"
+      ],
+      "specific": false
+    },
+    {
       "slug": "nestjs",
       "category": "frameworks",
       "path": "technologies/frameworks/nestjs.png",
       "aliases": [
-        "Nest.js"
+        "Nest.js",
+        "NestJS"
       ],
       "specific": true
     },
@@ -231,7 +413,8 @@
       "category": "frameworks",
       "path": "technologies/frameworks/nextjs.png",
       "aliases": [
-        "Next.js"
+        "Next.js",
+        "NextJS"
       ],
       "specific": true
     },
@@ -261,6 +444,15 @@
       "specific": true
     },
     {
+      "slug": "qwik",
+      "category": "frameworks",
+      "path": "fallback/framework.png",
+      "aliases": [
+        "Qwik"
+      ],
+      "specific": false
+    },
+    {
       "slug": "rails",
       "category": "frameworks",
       "path": "technologies/frameworks/rails.png",
@@ -274,7 +466,28 @@
       "category": "frameworks",
       "path": "technologies/frameworks/react.png",
       "aliases": [
-        "reactjs"
+        "reactjs",
+        "React.js"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "remix",
+      "category": "frameworks",
+      "path": "fallback/framework.png",
+      "aliases": [
+        "Remix"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "solid",
+      "category": "frameworks",
+      "path": "technologies/frameworks/solidjs.png",
+      "aliases": [
+        "SolidJS",
+        "Solid.js",
+        "Solid JS"
       ],
       "specific": true
     },
@@ -311,11 +524,33 @@
       "specific": true
     },
     {
+      "slug": "tailwindcss",
+      "category": "frameworks",
+      "path": "technologies/frameworks/tailwind.png",
+      "aliases": [
+        "Tailwind CSS",
+        "Tailwind",
+        "TailwindCSS"
+      ],
+      "specific": true
+    },
+    {
       "slug": "vue",
       "category": "frameworks",
       "path": "technologies/frameworks/vue.png",
       "aliases": [
-        "Vue.js"
+        "Vue.js",
+        "VueJS"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "access",
+      "category": "databases",
+      "path": "technologies/databases/access.png",
+      "aliases": [
+        "Microsoft Access",
+        "MS Access"
       ],
       "specific": true
     },
@@ -325,6 +560,62 @@
       "path": "technologies/databases/cassandra.png",
       "aliases": [
         "Apache Cassandra"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "clickhouse",
+      "category": "databases",
+      "path": "technologies/databases/clickhouse.png",
+      "aliases": [
+        "ClickHouse DB"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "cockroachdb",
+      "category": "databases",
+      "path": "technologies/databases/cockroachdb.png",
+      "aliases": [
+        "Cockroach DB"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "couchdb",
+      "category": "databases",
+      "path": "fallback/database.png",
+      "aliases": [
+        "Apache CouchDB"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "db2",
+      "category": "databases",
+      "path": "technologies/databases/db2.png",
+      "aliases": [
+        "IBM Db2",
+        "IBM DB2"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "duckdb",
+      "category": "databases",
+      "path": "technologies/databases/duckdb.png",
+      "aliases": [
+        "Duck DB"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "dynamodb",
+      "category": "databases",
+      "path": "technologies/databases/dynamodb.png",
+      "aliases": [
+        "Amazon DynamoDB",
+        "AWS DynamoDB"
       ],
       "specific": true
     },
@@ -340,6 +631,34 @@
       "category": "databases",
       "path": "technologies/databases/firebase.png",
       "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "firestore",
+      "category": "databases",
+      "path": "technologies/databases/firestore.png",
+      "aliases": [
+        "Cloud Firestore",
+        "Google Cloud Firestore"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "h2-database",
+      "category": "databases",
+      "path": "fallback/database.png",
+      "aliases": [
+        "H2 Database"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "influxdb",
+      "category": "databases",
+      "path": "technologies/databases/influxdb.png",
+      "aliases": [
+        "Influx DB"
+      ],
       "specific": true
     },
     {
@@ -364,6 +683,25 @@
       "specific": true
     },
     {
+      "slug": "neo4j",
+      "category": "databases",
+      "path": "technologies/databases/neo4j.png",
+      "aliases": [
+        "Neo4j",
+        "Neo4j Database"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "opensearch",
+      "category": "databases",
+      "path": "technologies/databases/opensearch.png",
+      "aliases": [
+        "Amazon OpenSearch"
+      ],
+      "specific": true
+    },
+    {
       "slug": "oracle-database",
       "category": "databases",
       "path": "technologies/databases/oracle-database.png",
@@ -378,7 +716,8 @@
       "path": "technologies/databases/postgresql.png",
       "aliases": [
         "postgres",
-        "org.postgresql"
+        "org.postgresql",
+        "Postgres SQL"
       ],
       "specific": true
     },
@@ -405,6 +744,15 @@
       "path": "technologies/databases/sqlite.png",
       "aliases": [],
       "specific": true
+    },
+    {
+      "slug": "supabase",
+      "category": "databases",
+      "path": "fallback/database.png",
+      "aliases": [
+        "Supabase"
+      ],
+      "specific": false
     },
     {
       "slug": "doctrine",
@@ -465,10 +813,65 @@
       "specific": true
     },
     {
+      "slug": "ansible",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Ansible"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "apache",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Apache"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "apache-ant",
+      "category": "tooling",
+      "path": "technologies/tooling/apache-ant.png",
+      "aliases": [
+        "Apache Ant",
+        "Ant Build"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "babel",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Babel"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "bazel",
+      "category": "tooling",
+      "path": "technologies/tooling/bazel.png",
+      "aliases": [
+        "Bazel Build"
+      ],
+      "specific": true
+    },
+    {
       "slug": "cargo",
       "category": "tooling",
       "path": "technologies/tooling/cargo.png",
       "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "cmake",
+      "category": "tooling",
+      "path": "technologies/tooling/cmake.png",
+      "aliases": [
+        "CMake Build"
+      ],
       "specific": true
     },
     {
@@ -486,6 +889,16 @@
       "specific": true
     },
     {
+      "slug": "esbuild",
+      "category": "tooling",
+      "path": "technologies/tooling/esbuild.png",
+      "aliases": [
+        "esbuild",
+        "ESBuild"
+      ],
+      "specific": true
+    },
+    {
       "slug": "git",
       "category": "tooling",
       "path": "technologies/tooling/git.png",
@@ -493,10 +906,83 @@
       "specific": true
     },
     {
+      "slug": "github",
+      "category": "tooling",
+      "path": "actions/github-logo.png",
+      "aliases": [
+        "GitHub"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "gitlab",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "GitLab"
+      ],
+      "specific": false
+    },
+    {
       "slug": "gradle",
       "category": "tooling",
       "path": "technologies/tooling/gradle.png",
       "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "grunt",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Grunt"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "gulp",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Gulp"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "jenkins",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Jenkins"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "kubernetes",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Kubernetes"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "linux",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Linux"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "make",
+      "category": "tooling",
+      "path": "technologies/tooling/make.png",
+      "aliases": [
+        "GNU Make",
+        "Makefile"
+      ],
       "specific": true
     },
     {
@@ -509,10 +995,29 @@
       "specific": true
     },
     {
+      "slug": "nginx",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Nginx"
+      ],
+      "specific": false
+    },
+    {
       "slug": "npm",
       "category": "tooling",
       "path": "technologies/tooling/npm.png",
       "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "nx",
+      "category": "tooling",
+      "path": "technologies/tooling/nx.png",
+      "aliases": [
+        "Nx",
+        "Nx CLI"
+      ],
       "specific": true
     },
     {
@@ -553,6 +1058,61 @@
       "specific": true
     },
     {
+      "slug": "rspack",
+      "category": "tooling",
+      "path": "technologies/tooling/rspack.png",
+      "aliases": [
+        "Rspack Bundler"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "swc",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "SWC"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "terraform",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Terraform"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "turbopack",
+      "category": "tooling",
+      "path": "technologies/tooling/turbopack.png",
+      "aliases": [
+        "Turbo Pack"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "turborepo",
+      "category": "tooling",
+      "path": "technologies/tooling/turborepo.png",
+      "aliases": [
+        "Turborepo",
+        "Turbo Repo"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "ubuntu",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Ubuntu"
+      ],
+      "specific": false
+    },
+    {
       "slug": "vite",
       "category": "tooling",
       "path": "technologies/tooling/vite.png",
@@ -574,11 +1134,40 @@
       "specific": true
     },
     {
+      "slug": "avalonia",
+      "category": "runtime",
+      "path": "technologies/runtime/avalonia.png",
+      "aliases": [
+        "Avalonia UI"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "bun",
+      "category": "runtime",
+      "path": "technologies/runtime/bun.png",
+      "aliases": [
+        "Bun",
+        "Bun.js"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "deno",
+      "category": "runtime",
+      "path": "fallback/runtime.png",
+      "aliases": [
+        "Deno"
+      ],
+      "specific": false
+    },
+    {
       "slug": "dotnet",
       "category": "runtime",
       "path": "technologies/runtime/dotnet.png",
       "aliases": [
-        ".NET"
+        ".NET",
+        ".NET Runtime"
       ],
       "specific": true
     },
@@ -590,10 +1179,29 @@
       "specific": true
     },
     {
+      "slug": "erlang",
+      "category": "runtime",
+      "path": "fallback/runtime.png",
+      "aliases": [
+        "Erlang"
+      ],
+      "specific": false
+    },
+    {
       "slug": "flutter",
       "category": "runtime",
       "path": "technologies/runtime/flutter.png",
       "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "gtk",
+      "category": "runtime",
+      "path": "technologies/runtime/gtk.png",
+      "aliases": [
+        "GTK+",
+        "GTK Toolkit"
+      ],
       "specific": true
     },
     {
@@ -604,13 +1212,100 @@
       "specific": true
     },
     {
+      "slug": "javafx",
+      "category": "runtime",
+      "path": "technologies/runtime/javafx.png",
+      "aliases": [
+        "Java FX"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "julia",
+      "category": "runtime",
+      "path": "fallback/runtime.png",
+      "aliases": [
+        "Julia"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "lua",
+      "category": "runtime",
+      "path": "fallback/runtime.png",
+      "aliases": [
+        "Lua"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "mix",
+      "category": "runtime",
+      "path": "fallback/runtime.png",
+      "aliases": [
+        "Mix"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "net-maui",
+      "category": "runtime",
+      "path": "technologies/runtime/net-maui.png",
+      "aliases": [
+        ".NET MAUI",
+        "MAUI",
+        "Microsoft MAUI"
+      ],
+      "specific": true
+    },
+    {
       "slug": "nodejs",
       "category": "runtime",
       "path": "technologies/runtime/nodejs.png",
       "aliases": [
         "Node.js",
         "node",
-        "NodeJS"
+        "NodeJS",
+        "Node JS"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "nwjs",
+      "category": "runtime",
+      "path": "technologies/runtime/nwjs.png",
+      "aliases": [
+        "NW.js",
+        "node-webkit"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "perl",
+      "category": "runtime",
+      "path": "fallback/runtime.png",
+      "aliases": [
+        "Perl"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "pyqt",
+      "category": "runtime",
+      "path": "technologies/runtime/pyqt.png",
+      "aliases": [
+        "PyQt5",
+        "PyQt6"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "pyside",
+      "category": "runtime",
+      "path": "technologies/runtime/pyside.png",
+      "aliases": [
+        "PySide2",
+        "PySide6"
       ],
       "specific": true
     },
@@ -629,418 +1324,33 @@
       "specific": true
     },
     {
-      "slug": "deno",
+      "slug": "wails",
       "category": "runtime",
-      "path": "fallback/runtime.png",
+      "path": "technologies/runtime/wails.png",
       "aliases": [
-        "Deno"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "bun",
-      "category": "runtime",
-      "path": "fallback/runtime.png",
-      "aliases": [
-        "Bun"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "erlang",
-      "category": "runtime",
-      "path": "fallback/runtime.png",
-      "aliases": [
-        "Erlang"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "lua",
-      "category": "runtime",
-      "path": "fallback/runtime.png",
-      "aliases": [
-        "Lua"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "perl",
-      "category": "runtime",
-      "path": "fallback/runtime.png",
-      "aliases": [
-        "Perl"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "julia",
-      "category": "runtime",
-      "path": "fallback/runtime.png",
-      "aliases": [
-        "Julia"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "mix",
-      "category": "runtime",
-      "path": "fallback/runtime.png",
-      "aliases": [
-        "Mix"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "html5",
-      "category": "languages",
-      "path": "fallback/language.png",
-      "aliases": [
-        "HTML5"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "css",
-      "category": "languages",
-      "path": "fallback/language.png",
-      "aliases": [
-        "CSS"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "haskell",
-      "category": "languages",
-      "path": "fallback/language.png",
-      "aliases": [
-        "Haskell"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "clojure",
-      "category": "languages",
-      "path": "fallback/language.png",
-      "aliases": [
-        "Clojure"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "zig",
-      "category": "languages",
-      "path": "fallback/language.png",
-      "aliases": [
-        "Zig"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "solidity",
-      "category": "languages",
-      "path": "fallback/language.png",
-      "aliases": [
-        "Solidity"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "remix",
-      "category": "frameworks",
-      "path": "fallback/framework.png",
-      "aliases": [
-        "Remix"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "solid",
-      "category": "frameworks",
-      "path": "fallback/framework.png",
-      "aliases": [
-        "SolidJS"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "qwik",
-      "category": "frameworks",
-      "path": "fallback/framework.png",
-      "aliases": [
-        "Qwik"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "alpinedotjs",
-      "category": "frameworks",
-      "path": "fallback/framework.png",
-      "aliases": [
-        "Alpine.js"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "tailwindcss",
-      "category": "frameworks",
-      "path": "fallback/framework.png",
-      "aliases": [
-        "Tailwind CSS"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "bootstrap",
-      "category": "frameworks",
-      "path": "fallback/framework.png",
-      "aliases": [
-        "Bootstrap"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "mui",
-      "category": "frameworks",
-      "path": "fallback/framework.png",
-      "aliases": [
-        "Material UI"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "sass",
-      "category": "frameworks",
-      "path": "fallback/framework.png",
-      "aliases": [
-        "Sass"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "less",
-      "category": "frameworks",
-      "path": "fallback/framework.png",
-      "aliases": [
-        "Less"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "hono",
-      "category": "frameworks",
-      "path": "fallback/framework.png",
-      "aliases": [
-        "Hono"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "couchdb",
-      "category": "databases",
-      "path": "fallback/database.png",
-      "aliases": [
-        "Apache CouchDB"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "neo4j",
-      "category": "databases",
-      "path": "fallback/database.png",
-      "aliases": [
-        "Neo4j"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "supabase",
-      "category": "databases",
-      "path": "fallback/database.png",
-      "aliases": [
-        "Supabase"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "h2-database",
-      "category": "databases",
-      "path": "fallback/database.png",
-      "aliases": [
-        "H2 Database"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "azure-sql-database",
-      "category": "languages",
-      "path": "fallback/language.png",
-      "aliases": [
-        "SQL Database"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "xml",
-      "category": "languages",
-      "path": "fallback/language.png",
-      "aliases": [
-        "XML"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "babel",
-      "category": "tooling",
-      "path": "fallback/language.png",
-      "aliases": [
-        "Babel"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "esbuild",
-      "category": "tooling",
-      "path": "fallback/language.png",
-      "aliases": [
-        "esbuild"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "swc",
-      "category": "tooling",
-      "path": "fallback/language.png",
-      "aliases": [
-        "SWC"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "turborepo",
-      "category": "tooling",
-      "path": "fallback/language.png",
-      "aliases": [
-        "Turborepo"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "nx",
-      "category": "tooling",
-      "path": "fallback/language.png",
-      "aliases": [
-        "Nx"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "grunt",
-      "category": "tooling",
-      "path": "fallback/language.png",
-      "aliases": [
-        "Grunt"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "gulp",
-      "category": "tooling",
-      "path": "fallback/language.png",
-      "aliases": [
-        "Gulp"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "kubernetes",
-      "category": "tooling",
-      "path": "fallback/language.png",
-      "aliases": [
-        "Kubernetes"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "github",
-      "category": "tooling",
-      "path": "actions/github-logo.png",
-      "aliases": [
-        "GitHub"
+        "Wails.io"
       ],
       "specific": true
     },
     {
-      "slug": "gitlab",
-      "category": "tooling",
-      "path": "fallback/language.png",
+      "slug": "winui-3",
+      "category": "runtime",
+      "path": "technologies/runtime/winui-3.png",
       "aliases": [
-        "GitLab"
+        "WinUI 3",
+        "WinUI",
+        "Windows App SDK"
       ],
-      "specific": false
+      "specific": true
     },
     {
-      "slug": "jenkins",
-      "category": "tooling",
-      "path": "fallback/language.png",
+      "slug": "wpf",
+      "category": "runtime",
+      "path": "technologies/runtime/wpf.png",
       "aliases": [
-        "Jenkins"
+        "Windows Presentation Foundation"
       ],
-      "specific": false
-    },
-    {
-      "slug": "terraform",
-      "category": "tooling",
-      "path": "fallback/language.png",
-      "aliases": [
-        "Terraform"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "ansible",
-      "category": "tooling",
-      "path": "fallback/language.png",
-      "aliases": [
-        "Ansible"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "nginx",
-      "category": "tooling",
-      "path": "fallback/language.png",
-      "aliases": [
-        "Nginx"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "apache",
-      "category": "tooling",
-      "path": "fallback/language.png",
-      "aliases": [
-        "Apache"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "linux",
-      "category": "tooling",
-      "path": "fallback/language.png",
-      "aliases": [
-        "Linux"
-      ],
-      "specific": false
-    },
-    {
-      "slug": "ubuntu",
-      "category": "tooling",
-      "path": "fallback/language.png",
-      "aliases": [
-        "Ubuntu"
-      ],
-      "specific": false
+      "specific": true
     }
   ],
   "icons": {

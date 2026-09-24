@@ -828,35 +828,71 @@ fn paths_equivalent(left: &str, right: &str) -> bool {
 fn repository_state_signature(record: &RepositoryRecord) -> io::Result<String> {
     let root = Path::new(&record.path);
     if let Some(commit) = git_output(root, &["rev-parse", "HEAD"]) {
-        let status = git_output(root, &["status", "--porcelain=v1", "--untracked-files=all"])
-            .unwrap_or_default();
-        if status.is_empty() {
-            return Ok(stable_hash(&format!("git-clean\n{commit}")));
-        }
+        let status_output = Command::new("git")
+            .arg("-C")
+            .arg(root)
+            .args(["status", "--porcelain=v1", "-z", "--untracked-files=all"])
+            .output();
+        if let Ok(status_output) = status_output {
+            if status_output.status.success() {
+                if status_output.stdout.is_empty() {
+                    return Ok(stable_hash(&format!("git-clean\n{commit}")));
+                }
 
-        // A porcelain status line only describes *which* paths are dirty. Its shape can stay
-        // identical while the actual contents continue changing, which would make a persisted
-        // workspace cache stale. Include Git's content diff plus the filesystem signature so
-        // tracked, staged and untracked edits all invalidate the repository model deterministically.
-        let diff = git_output(
-            root,
-            &[
-                "diff",
-                "--no-ext-diff",
-                "--no-textconv",
-                "--binary",
-                "HEAD",
-                "--",
-            ],
-        )
-        .unwrap_or_default();
-        let filesystem = filesystem_state_signature(root)?;
-        return Ok(stable_hash(&format!(
-            "git-dirty\n{commit}\n{status}\n{}\n{filesystem}",
-            stable_hash(&diff)
-        )));
+                // Git already knows which tracked files changed and `git diff HEAD` fingerprints
+                // their current contents. Only untracked files need an additional content
+                // fingerprint. Avoiding a full repository filesystem walk here matters because
+                // this signature is intentionally checked several times during a safe scan.
+                let diff = git_output(
+                    root,
+                    &[
+                        "diff",
+                        "--no-ext-diff",
+                        "--no-textconv",
+                        "--binary",
+                        "HEAD",
+                        "--",
+                    ],
+                )
+                .unwrap_or_default();
+                let untracked = untracked_state_signature(root, &status_output.stdout)?;
+                let status = String::from_utf8_lossy(&status_output.stdout);
+                return Ok(stable_hash(&format!(
+                    "git-dirty\n{commit}\n{status}\n{}\n{untracked}",
+                    stable_hash(&diff)
+                )));
+            }
+        }
     }
     filesystem_state_signature(root)
+}
+
+fn untracked_state_signature(root: &Path, porcelain_z: &[u8]) -> io::Result<String> {
+    let policy = ScanPolicy::default();
+    let mut rows = Vec::new();
+    for record in porcelain_z.split(|byte| *byte == 0).filter(|record| !record.is_empty()) {
+        if !record.starts_with(b"?? ") {
+            continue;
+        }
+        let relative = String::from_utf8_lossy(&record[3..]);
+        let path = root.join(relative.as_ref());
+        let metadata = match fs::metadata(&path) {
+            Ok(metadata) if metadata.is_file() => metadata,
+            _ => continue,
+        };
+        if !policy.accepts_source_from(root, &path, metadata.len()) {
+            continue;
+        }
+        let bytes = fs::read(&path)?;
+        rows.push(format!(
+            "{}\t{}\t{}",
+            relative.replace('\\', "/"),
+            metadata.len(),
+            sha256_hex(&bytes)
+        ));
+    }
+    rows.sort();
+    Ok(stable_hash(&rows.join("\n")))
 }
 
 fn filesystem_state_signature(root: &Path) -> io::Result<String> {
@@ -2130,6 +2166,12 @@ mod tests {
 
         assert_ne!(clean, dirty_two);
         assert_ne!(dirty_two, dirty_three);
+
+        fs::write(repo.join("untracked.txt"), "alpha").unwrap();
+        let untracked_alpha = repository_state_signature(&record).unwrap();
+        fs::write(repo.join("untracked.txt"), "bravo").unwrap();
+        let untracked_bravo = repository_state_signature(&record).unwrap();
+        assert_ne!(untracked_alpha, untracked_bravo);
     }
 
     #[test]

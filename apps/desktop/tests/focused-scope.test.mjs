@@ -33,5 +33,5 @@ test("desktop preserves focused GitHub source input", () => {
   assert.match(client, /analyze_source_command/);
   const tauri = fs.readFileSync(new URL("../src-tauri/src/lib.rs", import.meta.url), "utf8");
   assert.match(tauri, /clone_repository/);
-  assert.match(tauri, /scan_workspace_repository/);
+  assert.match(tauri, /scan_repository/);
 });

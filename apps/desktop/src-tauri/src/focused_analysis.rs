@@ -1,5 +1,6 @@
 use reposlice_core::{CrossProjectDependencyKind, EntrypointKind, WorkspaceModel};
 use serde::Serialize;
+use std::collections::HashMap;
 
 #[derive(Serialize)]
 pub struct FocusedRepositoryAnalysis {
@@ -92,6 +93,19 @@ pub fn from_workspace(
         .project_units
         .iter()
         .map(|unit| {
+            let entrypoint_metadata = unit
+                .model
+                .analysis
+                .entrypoints
+                .iter()
+                .map(|metadata| (metadata.entrypoint_id.as_str(), metadata))
+                .collect::<HashMap<_, _>>();
+            let component_names = unit
+                .model
+                .components
+                .iter()
+                .map(|component| (component.id.as_str(), component.name.as_str()))
+                .collect::<HashMap<_, _>>();
             let backend_endpoints = unit
                 .model
                 .entrypoints
@@ -99,12 +113,7 @@ pub fn from_workspace(
                 .filter(|entrypoint| entrypoint.kind == EntrypointKind::HttpEndpoint)
                 .filter_map(|entrypoint| {
                     let (method, path) = entrypoint.name.split_once(' ')?;
-                    let metadata = unit
-                        .model
-                        .analysis
-                        .entrypoints
-                        .iter()
-                        .find(|metadata| metadata.entrypoint_id == entrypoint.id);
+                    let metadata = entrypoint_metadata.get(entrypoint.id.as_str()).copied();
                     let controller = metadata.and_then(|item| item.controller.clone());
                     let action = metadata.and_then(|item| item.action.clone());
                     let creator = match (controller.as_deref(), action.as_deref()) {
@@ -164,12 +173,9 @@ pub fn from_workspace(
                         path: call.path.clone(),
                         component_id: call.component_id.clone(),
                         file: call.file.clone(),
-                        symbol: unit
-                            .model
-                            .components
-                            .iter()
-                            .find(|component| component.id == call.component_id)
-                            .map(|component| component.name.clone()),
+                        symbol: component_names
+                            .get(call.component_id.as_str())
+                            .map(|name| (*name).to_string()),
                         // The current call model has source paths but no source line.
                         line: None,
                     })
@@ -177,6 +183,12 @@ pub fn from_workspace(
             }
         })
         .collect();
+
+    let unit_by_id = repository
+        .project_units
+        .iter()
+        .map(|unit| (unit.id.as_str(), unit))
+        .collect::<HashMap<_, _>>();
 
     let endpoint_links = model
         .cross_project_dependencies
@@ -187,14 +199,12 @@ pub fn from_workspace(
                 && dependency.kind == CrossProjectDependencyKind::Http
         })
         .filter_map(|dependency| {
-            let source = repository
-                .project_units
-                .iter()
-                .find(|unit| unit.id == dependency.source_project_unit_id)?;
-            let target = repository
-                .project_units
-                .iter()
-                .find(|unit| unit.id == dependency.target_project_unit_id)?;
+            let source = unit_by_id
+                .get(dependency.source_project_unit_id.as_str())
+                .copied()?;
+            let target = unit_by_id
+                .get(dependency.target_project_unit_id.as_str())
+                .copied()?;
             let call = source.http_calls.iter().find(|call| {
                 call.component_id == dependency.source_component_id
                     && call.evidence == dependency.evidence

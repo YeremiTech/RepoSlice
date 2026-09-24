@@ -42,6 +42,31 @@ test('explicit aliases keep frameworks and languages distinct', () => {
   expect(resolveTechnologyIcon('Go Web')).toBeUndefined();
   expect(resolveTechnologyIcon('unknown-tool')).toBeUndefined();
 });
+test('newly bundled technology logos render for the actual analyzer category names',async({page})=>{
+  const variants=[
+    ['HTML','language','languages/html.png'],
+    ['CSS','language','languages/css.png'],
+    ['SCSS','language','languages/sass.png'],
+    ['Bootstrap','framework','frameworks/bootstrap.png'],
+    ['Hono','framework','frameworks/hono.png'],
+    ['DuckDB','data','databases/duckdb.png'],
+    ['Bun','runtime','runtime/bun.png'],
+    ['esbuild','build','tooling/esbuild.png']
+  ];
+  const data=structuredClone(analysis);
+  for(const [name,category] of variants){
+    data.project_units[0].technologies.push({name,category,classification:'Technology',confidence:90,detection_kind:'DIRECT',evidence:[]});
+  }
+  await openAnalysis(page,data);
+  await page.getByRole('button',{name:'Tecnologías',exact:true}).click();
+  for(const [name,,asset] of variants){
+    const tile=page.locator('.tech-tile').filter({hasText:name});
+    await expect(tile).toHaveCount(1);
+    await expect(tile.locator('img')).toHaveAttribute('src',`/assets/technologies/${asset}`);
+    await expect.poll(()=>tile.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+  }
+});
+
 test('repeated calls retain independent file and line matching', () => {
   const link = analysis.endpoint_links[0];
   const unit = analysis.project_units.find(unit => unit.id === link.consumer_project_unit_id);

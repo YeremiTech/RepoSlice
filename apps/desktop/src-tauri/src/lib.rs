@@ -5,15 +5,15 @@ use reposlice_capsule::{
 };
 use reposlice_core::{ProjectModel, ScopedTarget, WorkspaceModel};
 use reposlice_graph::{
-    validate_dependency_graph, validate_workspace_graph, workspace_dependency_slice,
-    workspace_impact_slice,
+    match_cross_project_dependencies, validate_dependency_graph, validate_workspace_graph,
+    workspace_dependency_slice, workspace_impact_slice,
 };
 use reposlice_runtime::detect_runtime;
 use reposlice_verifier::{sandbox_validation_plan, verify_capsule};
 use reposlice_workspace::{
     add_repository, clone_repository, create_workspace, delete_repository,
     install_local_crash_reporting, latest_analysis_record, list_repositories, list_workspaces,
-    load_cached_workspace_model, scan_workspace_controlled, scan_workspace_repository,
+    load_cached_workspace_model, scan_repository, scan_workspace_controlled,
     scan_workspace_repository_controlled, update_managed_repository, workspace_root,
     AnalysisRecord, RepositoryRecord, WorkspaceRecord, WorkspaceScanProgress,
 };
@@ -49,8 +49,18 @@ async fn analyze_source_command(
         }
         .map_err(|error| error.to_string())?;
 
-        let workspace = scan_workspace_repository("default", &repository.id)
-            .map_err(|error| error.to_string())?;
+        // The focused desktop flow only needs the selected repository. Running the workspace
+        // scanner here made analysis time grow with every repository previously registered in
+        // the default workspace. Scan the selected repository directly, then build the same
+        // single-repository workspace graph required by the focused presentation layer.
+        let analyzed_repository = scan_repository(&repository).map_err(|error| error.to_string())?;
+        let mut workspace = WorkspaceModel {
+            id: repository.workspace_id.clone(),
+            name: "Focused analysis".to_string(),
+            repositories: vec![analyzed_repository],
+            cross_project_dependencies: Vec::new(),
+        };
+        workspace.cross_project_dependencies = match_cross_project_dependencies(&workspace);
         focused_analysis::from_workspace(workspace, &repository.id)
     })
     .await

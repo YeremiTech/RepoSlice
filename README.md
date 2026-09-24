@@ -19,6 +19,8 @@ Los tags `vMAJOR.MINOR.PATCH` y sus variantes prerelease, por ejemplo `v0.4.0-rc
 
 Las imágenes de referencia y las capturas verificadas del producto se organizan en [`docs/referencias/imagenes/`](docs/referencias/imagenes/). Las referencias de diseño no representan necesariamente la interfaz actual.
 
+El catálogo de logotipos PNG locales, los alias que relacionan las tecnologías detectadas con sus imágenes y las instrucciones para ampliarlo están documentados en [Iconos de tecnologías](docs/TECHNOLOGY_ICONS.md). La disponibilidad de un logotipo no implica que el analizador detecte esa tecnología.
+
 ## ¿Qué es RepoSlice?
 
 RepoSlice es una herramienta de análisis estático que examina repositorios de software para construir un modelo universal de sus tecnologías, componentes, puntos de entrada y dependencias. A partir de ese modelo permite explorar un proyecto, relacionar servicios dentro de un workspace y crear cápsulas de código trazables para revisar o compartir una parte concreta del sistema.

@@ -5,11 +5,6 @@
     "expected": "technologies/runtime/deno.png"
   },
   {
-    "technology": "Bun",
-    "category": "runtime",
-    "expected": "technologies/runtime/bun.png"
-  },
-  {
     "technology": "Erlang",
     "category": "runtime",
     "expected": "technologies/runtime/erlang.png"
@@ -33,16 +28,6 @@
     "technology": "Mix",
     "category": "runtime",
     "expected": "technologies/runtime/mix.png"
-  },
-  {
-    "technology": "HTML5",
-    "category": "languages",
-    "expected": "technologies/languages/html5.png"
-  },
-  {
-    "technology": "CSS",
-    "category": "languages",
-    "expected": "technologies/languages/css.png"
   },
   {
     "technology": "Haskell",
@@ -70,11 +55,6 @@
     "expected": "technologies/frameworks/remix.png"
   },
   {
-    "technology": "SolidJS",
-    "category": "frameworks",
-    "expected": "technologies/frameworks/solid.png"
-  },
-  {
     "technology": "Qwik",
     "category": "frameworks",
     "expected": "technologies/frameworks/qwik.png"
@@ -85,24 +65,9 @@
     "expected": "technologies/frameworks/alpinedotjs.png"
   },
   {
-    "technology": "Tailwind CSS",
-    "category": "frameworks",
-    "expected": "technologies/frameworks/tailwindcss.png"
-  },
-  {
-    "technology": "Bootstrap",
-    "category": "frameworks",
-    "expected": "technologies/frameworks/bootstrap.png"
-  },
-  {
     "technology": "Material UI",
     "category": "frameworks",
     "expected": "technologies/frameworks/mui.png"
-  },
-  {
-    "technology": "Sass",
-    "category": "frameworks",
-    "expected": "technologies/frameworks/sass.png"
   },
   {
     "technology": "Less",
@@ -110,19 +75,9 @@
     "expected": "technologies/frameworks/less.png"
   },
   {
-    "technology": "Hono",
-    "category": "frameworks",
-    "expected": "technologies/frameworks/hono.png"
-  },
-  {
     "technology": "Apache CouchDB",
     "category": "databases",
     "expected": "technologies/databases/couchdb.png"
-  },
-  {
-    "technology": "Neo4j",
-    "category": "databases",
-    "expected": "technologies/databases/neo4j.png"
   },
   {
     "technology": "Supabase",
@@ -150,24 +105,9 @@
     "expected": "technologies/tooling/babel.png"
   },
   {
-    "technology": "esbuild",
-    "category": "tooling",
-    "expected": "technologies/tooling/esbuild.png"
-  },
-  {
     "technology": "SWC",
     "category": "tooling",
     "expected": "technologies/tooling/swc.png"
-  },
-  {
-    "technology": "Turborepo",
-    "category": "tooling",
-    "expected": "technologies/tooling/turborepo.png"
-  },
-  {
-    "technology": "Nx",
-    "category": "tooling",
-    "expected": "technologies/tooling/nx.png"
   },
   {
     "technology": "Grunt",

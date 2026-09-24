@@ -49,6 +49,10 @@ pub fn parse_typescript(root: &Path) -> io::Result<(Vec<Component>, Vec<Dependen
     let canonical_root = canonical_or_original(root);
     let config = load_typescript_config(root);
     let mut components = Vec::new();
+    // Keep each source in memory for the duration of this parser pass. The previous
+    // implementation requested every TypeScript file twice (declarations, then imports),
+    // which forced a second cache lookup and full String clone for large projects.
+    let mut sources = Vec::with_capacity(files.len());
 
     for file in &files {
         let content = read_source_text(file)?;
@@ -95,6 +99,7 @@ pub fn parse_typescript(root: &Path) -> io::Result<(Vec<Component>, Vec<Dependen
                 });
             }
         }
+        sources.push((file.clone(), content));
     }
 
     let by_file: BTreeMap<String, String> = components
@@ -118,13 +123,12 @@ pub fn parse_typescript(root: &Path) -> io::Result<(Vec<Component>, Vec<Dependen
         }
     }
 
-    for file in &files {
+    for (file, content) in &sources {
         let canonical_file = canonical_or_original(file);
         let source_key = canonical_file.to_string_lossy().to_string();
         let Some(source_id) = by_file.get(&source_key) else {
             continue;
         };
-        let content = read_source_text(file).unwrap_or_default();
 
         for line in content.lines() {
             let normalized = line.trim_start();
