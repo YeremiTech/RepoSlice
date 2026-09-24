@@ -17,7 +17,7 @@ RepoSlice `0.4.0` está preparado como **Release Candidate técnico**. Cada camb
 
 Los tags `vMAJOR.MINOR.PATCH` y sus variantes prerelease, por ejemplo `v0.4.0-rc.1`, pasan por el quality gate antes de empaquetar Desktop, CLI y MCP con procedencia y SHA-256. Si el tag incluye un sufijo prerelease, GitHub lo publica automáticamente como prerelease.
 
-Las capturas de interfaz deben corresponder a un build verificado del release actual; no se conserva una captura antigua como preview del producto.
+Las imágenes de referencia y las capturas verificadas del producto se organizan en [`docs/referencias/imagenes/`](docs/referencias/imagenes/). Las referencias de diseño no representan necesariamente la interfaz actual.
 
 ## ¿Qué es RepoSlice?
 
@@ -25,7 +25,7 @@ RepoSlice es una herramienta de análisis estático que examina repositorios de 
 
 El proyecto está compuesto por un motor Rust reutilizable, una CLI y una aplicación Desktop basada en Tauri + React. El motor analiza repositorios sin ejecutar el código, descubre unidades de proyecto en monorepositorios, detecta frameworks y produce un grafo de relaciones que puede ser exportado, inspectado y utilizado para crear cápsulas verificables.
 
-RepoSlice está orientado a desarrolladores, arquitectos de software, tech leads y equipos de modernización que necesitan analizar repositorios grandes, monorepos o sistemas distribuidos en múltiples repositorios. También está diseñado para herramientas y agentes que requieren contexto reducido de código.
+RepoSlice está orientado a desarrolladores, arquitectos de software, tech leads y equipos de modernización que necesitan analizar repositorios grandes, monorepos o sistemas distribuidos en múltiples repositorios. La CLI y el SDK permiten integrar los resultados del análisis en otros flujos de trabajo.
 
 ## ¿Qué problema resuelve?
 
@@ -54,21 +54,20 @@ El motor descubre automáticamente la estructura del proyecto, identifica tecnol
 - Excluye archivos sensibles y verifica integridad de contenido, inventario, portabilidad y seguridad de symlinks en las cápsulas.
 - Detecta runtimes locales como Node.js, Java, Python, PHP, Docker, Go y Rust.
 - Expone la misma lógica a través de un SDK Rust, la CLI y la aplicación Desktop.
-- Conserva snapshots SHA-256 de la evolución del workspace y permite comparar cambios estructurales entre análisis.
+- Verifica la integridad de los modelos de workspace persistidos mediante hashes SHA-256.
 - Exporta el modelo del workspace a JSON, Mermaid y GraphML.
-- Genera contexto acotado para agentes y ofrece un servidor MCP local, loopback-only y de solo lectura.
+- Ofrece un servidor MCP local, limitado a loopback y de solo lectura, para consultar workspaces.
 - Persiste una auditoría del último análisis por repositorio con estado, duración, commit, firma del registro de analizadores, fingerprint del modelo, cobertura, diagnósticos e integridad del grafo.
-- Usa iconos tecnológicos SVG locales y funciona sin depender de CDN externos.
-- Mantiene interfaz ES/EN y localiza diagnósticos conocidos por código sin alterar identificadores técnicos.
-- Acelera reanálisis mediante dos niveles de caché: caché interna del scanner y un `WorkspaceModel` persistente e incremental por repositorio, invalidado por commit/estado Git, cambios locales, firma de analizadores y versión del motor.
+- Usa iconos PNG locales y funciona sin depender de CDN externos.
+- Acelera reanálisis mediante caché del scanner y un `WorkspaceModel` persistente e incremental por repositorio, cuya reutilización depende de la versión del motor, los analizadores y el estado del repositorio.
 
 ## Tecnologías soportadas
 
 | Categoría | Tecnologías |
 | --- | --- |
-| **Backend** | Java, Spring Boot, PHP, Laravel, Symfony, Django, FastAPI, Flask, ASP.NET, Blazor, Rails, Go Web, Rust Web, Quarkus, Micronaut, Ktor, Phoenix |
-| **Frontend** | TypeScript/JavaScript, Angular, React, Next.js, Vue, Nuxt, Svelte, SvelteKit, Astro, NestJS, Express, Fastify, Hono |
-| **Otros** | Python, C#, Ruby, Go, Rust (análisis genérico) |
+| **Backend** | Java, Spring Boot, PHP, Laravel, Symfony, Django, FastAPI, Flask, ASP.NET, Blazor, Rails, Phoenix, Go Web, Rust Web, Quarkus, Micronaut, Ktor, NestJS, Express, Fastify, Hono |
+| **Frontend** | TypeScript/JavaScript, Angular, React, Next.js, Vue, Nuxt, Svelte, SvelteKit, Astro |
+| **Otros** | Python, C#, Ruby, Go y Rust (análisis genérico), además de bases de datos, runtimes y herramientas de build |
 
 Para la matriz completa de soporte y niveles de análisis, consulta [SUPPORTED_TECHNOLOGIES.md](SUPPORTED_TECHNOLOGIES.md).
 
@@ -160,13 +159,13 @@ Cada cápsula contiene `capsule.toml`, el código seleccionado, manifiestos apli
 
 ```powershell
 Set-Location .\apps\desktop
-npm install
+npm ci
 npm run tauri:dev
 ```
 
 La interfaz de análisis presenta tres vistas: **Resumen**, **Tecnologías** y **Endpoints**. El resumen muestra unidades, tecnologías, rutas, llamadas y relaciones detectadas. La vista de tecnologías organiza los resultados por categoría e incluye la evidencia encontrada. La vista de endpoints permite buscar y filtrar rutas y llamadas, paginar los resultados y revisar coincidencias confirmadas entre frontend y backend.
 
-Selecciona una carpeta local o introduce una URL de GitHub. Las tres vistas usan el mismo resultado del motor Rust; los filtros, las métricas y las relaciones se calculan a partir de ese análisis. Los iconos de la interfaz y las tecnologías se sirven como PNG locales desde `apps/desktop/public/assets`. Si una tecnología no tiene un logo específico, aparece un recurso genérico de su categoría junto con su nombre. La matriz de logos pendientes se mantiene en [`docs/png-pending.json`](docs/png-pending.json).
+Selecciona una carpeta local o introduce una URL de GitHub. Las tres vistas usan el mismo resultado del motor Rust; los filtros, las métricas y las relaciones se calculan a partir de ese análisis. Los iconos de la interfaz y las tecnologías se sirven como PNG locales desde `apps/desktop/public/assets`. Si una tecnología no tiene un logo específico, aparece un recurso genérico de su categoría junto con su nombre. La matriz de logos pendientes se mantiene en [`docs/png-pending.json`](docs/png-pending.json). Las imágenes de referencia que se incorporen al repositorio se guardan en [`docs/referencias/imagenes/`](docs/referencias/imagenes/); al enlazarlas, indica si son una referencia de diseño o una captura del producto.
 
 La CLI, el SDK Rust, el servidor MCP, los workspaces, los análisis de grafo, las operaciones de slicing e impacto y la creación/verificación de cápsulas siguen disponibles en sus paquetes correspondientes.
 
@@ -176,6 +175,7 @@ Para generar el frontend de producción:
 npm ci
 npm run typecheck
 npm test
+npx playwright install chromium
 npm run test:browser
 npm run build
 ```
@@ -221,7 +221,7 @@ let report = sdk.validate_graph(&model);
 
 ## Servidor MCP
 
-`reposlice-mcp` es un servidor MCP local de solo lectura para agentes. Se ejecuta en loopback, rechaza conexiones no-locales y expone un conjunto de herramientas para consultar modelos de workspace cached.
+`reposlice-mcp` es un servidor MCP local de solo lectura para agentes. Se ejecuta en loopback, rechaza conexiones no locales y expone la herramienta `workspace_status` para consultar el resumen de un workspace guardado en caché.
 
 ## Arquitectura
 
@@ -284,7 +284,10 @@ Desde `apps/desktop`:
 ```powershell
 cd apps\desktop
 npm ci
+npm run typecheck
 npm test
+npx playwright install chromium
+npm run test:browser
 npm run build
 ```
 
@@ -317,6 +320,7 @@ Los workspaces y repositorios se registran en TSV. El último `WorkspaceModel` v
 - [Arquitectura detallada](ARCHITECTURE.md)
 - [Tecnologías y frameworks soportados](SUPPORTED_TECHNOLOGIES.md)
 - [Release y seguridad operacional](docs/RELEASE_AND_SECURITY.md)
+- [Imágenes de referencia](docs/referencias/imagenes/README.md)
 - [Política de seguridad](SECURITY.md)
 - [Changelog](CHANGELOG.md)
 - [Contribuir](CONTRIBUTING.md)
