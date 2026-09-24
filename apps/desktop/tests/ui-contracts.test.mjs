@@ -8,16 +8,13 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
 const src = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('technology icons resolve locally without remote CDN URLs', () => {
-  const catalog = src('src/lib/technologyIcons.ts');
-  const icons = src('src/components/Icons.tsx');
-  assert.match(catalog, /LOCAL_TECH_ICON_BASE/);
-  assert.doesNotMatch(catalog, /https:\/\/(?:thesvg\.org|cdn\.jsdelivr\.net)/);
-  assert.doesNotMatch(icons, /https:\/\/(?:thesvg\.org|cdn\.jsdelivr\.net)/);
-  const slugs = [...catalog.matchAll(/slug:\s*"([^"]+)"/g)].map((match) => match[1]);
-  assert.ok(slugs.length >= 50, 'expected broad technology catalog');
-  for (const slug of new Set(slugs)) {
-    assert.ok(fs.existsSync(path.join(root, 'public', 'technologies', `${slug}.svg`)), `missing local technology icon ${slug}`);
+test('technology icons resolve from the local PNG catalog', () => {
+  const catalog = JSON.parse(src('src/lib/assets.json'));
+  assert.ok(catalog.technologies.length >= 50, 'expected broad technology catalog');
+  assert.doesNotMatch(JSON.stringify(catalog), /https?:\/\//);
+  for (const {slug, path: asset} of catalog.technologies) {
+    assert.ok(asset.endsWith('.png'), `${slug} should use a PNG asset`);
+    assert.ok(fs.existsSync(path.join(root, 'public', 'assets', asset)), `missing local technology icon ${asset}`);
   }
 });
 
@@ -37,35 +34,22 @@ test('all frontend invoke commands are registered in the active Tauri handler', 
 });
 
 test('desktop exposes all primary analysis views', () => {
-  const sidebar = src('src/components/Sidebar.tsx');
-  for (const view of ['overview', 'projects', 'architecture', 'audit', 'components', 'entrypoints', 'dependencies', 'capsules']) {
-    assert.match(sidebar, new RegExp(`id:\\s*"${view}"`));
-  }
+  const app = src('src/App.tsx');
+  for (const view of ['Resumen', 'Tecnologías', 'Endpoints']) assert.ok(app.includes(view));
+  assert.doesNotMatch(app, /<Sidebar|CapsulesView|ArchitectureView|DependenciesView|AuditView/);
 });
 
 test('styles are layered and readability overrides protect dense views', () => {
   const entry = src('src/styles/index.css');
-  assert.match(entry, /@import "\.\/base\.css"/);
-  assert.match(entry, /@import "\.\/projects\.css"/);
-  assert.match(entry, /@import "\.\/architecture\.css"/);
-  assert.match(entry, /@import "\.\/components\.css"/);
-  assert.match(entry, /@import "\.\/entrypoints\.css"/);
-  assert.match(entry, /@import "\.\/dependencies\.css"/);
-  assert.match(entry, /@import "\.\/capsules\.css"/);
-  assert.match(entry, /@import "\.\/readability\.css"/);
-  assert.match(entry, /@import "\.\/i18n\.css"/);
-  assert.match(entry, /@import "\.\/calibration\.css"/);
-  const readability = src('src/styles/readability.css');
-  for (const selector of ['.components-neon-file', '.entrypoints-file', '.audit-diagnostic', '.dependency-node strong']) {
-    assert.ok(readability.includes(selector), `missing readability override for ${selector}`);
-  }
-  assert.match(readability, /font-size:\s*13px\s*!important/);
+  assert.match(entry, /--surface-0/);
+  assert.match(entry, /\.png-image[\s\S]*object-fit:\s*contain/);
+  assert.match(entry, /:focus-visible/);
+  assert.match(entry, /@media/);
 });
 
-test('workspace refresh, repository lifecycle, progress and cancellation are wired end to end', () => {
+test('legacy workspace lifecycle remains available beside focused analysis', () => {
   const client = src('src/lib/client.ts');
   const app = src('src/App.tsx');
-  const projects = src('src/views/ProjectsView.tsx');
   const tauri = src('src-tauri/src/lib.rs');
 
   for (const command of [
@@ -78,27 +62,17 @@ test('workspace refresh, repository lifecycle, progress and cancellation are wir
     assert.match(tauri, new RegExp(`\\b${command}\\b`), `Tauri backend missing ${command}`);
   }
 
-  assert.match(app, /listen<AnalysisProgress>\("analysis-progress"/);
-  assert.match(app, /<AnalysisProgressBanner/);
-  assert.match(projects, /onUpdate:\s*\(id:\s*string\)/);
-  assert.match(projects, /onRemove:\s*\(id:\s*string\)/);
+  assert.match(app, /analyzeSource/);
+  assert.match(app, /busy/);
 });
 
-test('desktop interactions are race-safe and keyboard accessible', () => {
+test('focused desktop interactions validate source and expose accessible state', () => {
   const app = src('src/App.tsx');
-  const modal = src('src/components/Modal.tsx');
-  const toolbar = src('src/components/ProjectToolbar.tsx');
-  const sidebar = src('src/components/Sidebar.tsx');
-
-  assert.doesNotMatch(app, /window\.prompt/);
-  assert.match(app, /workspaceLoadRequest/);
-  assert.match(app, /Promise\.all/);
-  assert.match(modal, /event\.key === "Escape"/);
-  assert.match(modal, /FOCUSABLE_SELECTOR/);
-  assert.match(modal, /aria-modal="true"/);
-  assert.match(toolbar, /aria-busy=\{props\.busy\}/);
-  assert.match(toolbar, /disabled=\{props\.busy\}/);
-  assert.match(sidebar, /aria-current=\{active \? "page" : undefined\}/);
+  assert.match(app, /aria-current/);
+  assert.match(app, /role="alert"/);
+  assert.match(app, /disabled=\{busy\}/);
+  assert.match(app, /running\.current/);
+  assert.match(app, /preventDefault/);
 });
 
 test('framework quality corpus covers the extended supported matrix', () => {
@@ -252,12 +226,11 @@ test('workspace smoke test covers lifecycle integrity and generic exports', () =
   }
 });
 
-test('visual target semantics stay scoped to supported slice and capsule actions', () => {
+test('focused interface leaves deeper engine capabilities intact without exposing legacy views', () => {
   const app = src('src/App.tsx');
-  const toolbarTargets = app.match(/const targets = useMemo\(\(\) => \{([\s\S]*?)async function refreshRepositories/)?.[1] ?? '';
-  assert.ok(toolbarTargets, 'toolbar target model was not found');
-  assert.doesNotMatch(toolbarTargets, /project-unit:/, 'ProjectToolbar must not offer project-unit targets to slice/capsule actions');
-  assert.doesNotMatch(toolbarTargets, /model\.technologies/, 'ProjectToolbar must not offer technology targets to slice/capsule actions');
+  assert.doesNotMatch(app, /CapsulesView|SliceView|ImpactView/);
+  assert.ok(fs.existsSync(path.resolve(root, '..', '..', 'crates', 'reposlice-capsule')));
+  assert.ok(fs.existsSync(path.resolve(root, '..', '..', 'crates', 'reposlice-runtime')));
 });
 
 test('workspace integrity field contract remains defined by the graph engine', () => {
@@ -271,14 +244,12 @@ test('workspace integrity field contract remains defined by the graph engine', (
 });
 
 test('public desktop assets exclude redundant and regenerable repository artifacts', () => {
-  const sidebar = src('src/components/Sidebar.tsx');
-  assert.match(sidebar, /src="\/logo\.png"/);
-  const publicAssets = new Set(fs.readdirSync(path.join(root, 'public')));
-  assert.ok(publicAssets.has('logo.png'), 'optimized sidebar logo must exist');
-  for (const obsolete of ['Logo.png', 'Logo-4k.png', 'LogoMark-4k.png', 'favicon-256.png']) {
-    assert.equal(publicAssets.has(obsolete), false, `obsolete public asset should not be committed: ${obsolete}`);
+  const assets = JSON.parse(src('src/lib/assets.json'));
+  assert.ok(fs.existsSync(path.join(root, 'public', 'assets', 'branding', 'reposlice.png')));
+  for (const {path: asset} of assets.technologies) {
+    assert.ok(fs.existsSync(path.join(root, 'public', 'assets', asset)));
   }
-  assert.equal(fs.existsSync(path.join(root, 'src-tauri', 'gen', 'schemas')), false, 'Tauri schemas are regenerable and should not be committed');
-  assert.equal(fs.existsSync(path.join(root, 'src-tauri', 'icons', 'android')), false, 'mobile Android icons are outside the Desktop product');
-  assert.equal(fs.existsSync(path.join(root, 'src-tauri', 'icons', 'ios')), false, 'mobile iOS icons are outside the Desktop product');
+  const gitignore = fs.readFileSync(path.resolve(root, '..', '..', '.gitignore'), 'utf8');
+  assert.match(gitignore, /src-tauri\/target/);
+  assert.match(gitignore, /\.work\//);
 });

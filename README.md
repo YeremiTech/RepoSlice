@@ -164,14 +164,19 @@ npm install
 npm run tauri:dev
 ```
 
-La aplicación incluye las vistas Overview, Projects, Architecture, Audit, Components, Entrypoints, Dependencies y Capsules. El Overview muestra tecnologías detectadas con iconos, compatibilidad del análisis, runtimes locales, distribución de componentes y métricas del proyecto.
+La interfaz de análisis presenta tres vistas: **Resumen**, **Tecnologías** y **Endpoints**. El resumen muestra unidades, tecnologías, rutas, llamadas y relaciones detectadas. La vista de tecnologías organiza los resultados por categoría e incluye la evidencia encontrada. La vista de endpoints permite buscar y filtrar rutas y llamadas, paginar los resultados y revisar coincidencias confirmadas entre frontend y backend.
 
-`Audit` muestra el estado persistido del análisis, Analysis ID, duración, commit, firma del registro de analizadores, fingerprint del modelo, cobertura, integridad del grafo, ciclos, diagnósticos y evidencia de frameworks.
+Selecciona una carpeta local o introduce una URL de GitHub. Las tres vistas usan el mismo resultado del motor Rust; los filtros, las métricas y las relaciones se calculan a partir de ese análisis. Los iconos de la interfaz y las tecnologías se sirven como PNG locales desde `apps/desktop/public/assets`. Si una tecnología no tiene un logo específico, aparece un recurso genérico de su categoría junto con su nombre. La matriz de logos pendientes se mantiene en [`docs/png-pending.json`](docs/png-pending.json).
+
+La CLI, el SDK Rust, el servidor MCP, los workspaces, los análisis de grafo, las operaciones de slicing e impacto y la creación/verificación de cápsulas siguen disponibles en sus paquetes correspondientes.
 
 Para generar el frontend de producción:
 
 ```powershell
+npm ci
+npm run typecheck
 npm test
+npm run test:browser
 npm run build
 ```
 
@@ -194,13 +199,11 @@ git push origin v0.4.0-rc.1
 
 El tag debe compartir la misma versión base que `package.json`, `package-lock.json`, `tauri.conf.json`, la integración VS Code y todos los paquetes Cargo. `scripts/check-release-version.mjs` verifica ese contrato antes de publicar.
 
-### Estilos, iconos e idioma
+### Estilos e iconos
 
-Los estilos están organizados por superficie en `apps/desktop/src/styles/`; `index.css` solo conserva el orden de composición. Las reglas de legibilidad están aisladas en `readability.css` y el selector de idioma en `i18n.css`.
+La interfaz nueva define su paleta, espaciado, bordes, foco y adaptación a distintos anchos en `apps/desktop/src/styles/index.css`.
 
-Los iconos tecnológicos se sirven desde `apps/desktop/public/technologies` como SVG locales, evitando dependencias de CDN y manteniendo nitidez al escalar.
-
-La interfaz Desktop admite **Español (ES)** e **Inglés (EN)** mediante un selector integrado.
+El registro central de tecnologías está en `apps/desktop/src/lib/assets.json`; se puede ampliar con un PNG, su categoría y sus alias. Los analizadores siguen aceptando proyectos que contengan archivos SVG, aunque la interfaz ya no los usa para sus iconos.
 
 ## SDK Rust
 

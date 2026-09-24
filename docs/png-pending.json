@@ -1,0 +1,227 @@
+[
+  {
+    "technology": "Deno",
+    "category": "runtime",
+    "expected": "technologies/runtime/deno.png"
+  },
+  {
+    "technology": "Bun",
+    "category": "runtime",
+    "expected": "technologies/runtime/bun.png"
+  },
+  {
+    "technology": "Erlang",
+    "category": "runtime",
+    "expected": "technologies/runtime/erlang.png"
+  },
+  {
+    "technology": "Lua",
+    "category": "runtime",
+    "expected": "technologies/runtime/lua.png"
+  },
+  {
+    "technology": "Perl",
+    "category": "runtime",
+    "expected": "technologies/runtime/perl.png"
+  },
+  {
+    "technology": "Julia",
+    "category": "runtime",
+    "expected": "technologies/runtime/julia.png"
+  },
+  {
+    "technology": "Mix",
+    "category": "runtime",
+    "expected": "technologies/runtime/mix.png"
+  },
+  {
+    "technology": "HTML5",
+    "category": "languages",
+    "expected": "technologies/languages/html5.png"
+  },
+  {
+    "technology": "CSS",
+    "category": "languages",
+    "expected": "technologies/languages/css.png"
+  },
+  {
+    "technology": "Haskell",
+    "category": "languages",
+    "expected": "technologies/languages/haskell.png"
+  },
+  {
+    "technology": "Clojure",
+    "category": "languages",
+    "expected": "technologies/languages/clojure.png"
+  },
+  {
+    "technology": "Zig",
+    "category": "languages",
+    "expected": "technologies/languages/zig.png"
+  },
+  {
+    "technology": "Solidity",
+    "category": "languages",
+    "expected": "technologies/languages/solidity.png"
+  },
+  {
+    "technology": "Remix",
+    "category": "frameworks",
+    "expected": "technologies/frameworks/remix.png"
+  },
+  {
+    "technology": "SolidJS",
+    "category": "frameworks",
+    "expected": "technologies/frameworks/solid.png"
+  },
+  {
+    "technology": "Qwik",
+    "category": "frameworks",
+    "expected": "technologies/frameworks/qwik.png"
+  },
+  {
+    "technology": "Alpine.js",
+    "category": "frameworks",
+    "expected": "technologies/frameworks/alpinedotjs.png"
+  },
+  {
+    "technology": "Tailwind CSS",
+    "category": "frameworks",
+    "expected": "technologies/frameworks/tailwindcss.png"
+  },
+  {
+    "technology": "Bootstrap",
+    "category": "frameworks",
+    "expected": "technologies/frameworks/bootstrap.png"
+  },
+  {
+    "technology": "Material UI",
+    "category": "frameworks",
+    "expected": "technologies/frameworks/mui.png"
+  },
+  {
+    "technology": "Sass",
+    "category": "frameworks",
+    "expected": "technologies/frameworks/sass.png"
+  },
+  {
+    "technology": "Less",
+    "category": "frameworks",
+    "expected": "technologies/frameworks/less.png"
+  },
+  {
+    "technology": "Hono",
+    "category": "frameworks",
+    "expected": "technologies/frameworks/hono.png"
+  },
+  {
+    "technology": "Apache CouchDB",
+    "category": "databases",
+    "expected": "technologies/databases/couchdb.png"
+  },
+  {
+    "technology": "Neo4j",
+    "category": "databases",
+    "expected": "technologies/databases/neo4j.png"
+  },
+  {
+    "technology": "Supabase",
+    "category": "databases",
+    "expected": "technologies/databases/supabase.png"
+  },
+  {
+    "technology": "H2 Database",
+    "category": "databases",
+    "expected": "technologies/databases/h2-database.png"
+  },
+  {
+    "technology": "SQL Database",
+    "category": "languages",
+    "expected": "technologies/languages/azure-sql-database.png"
+  },
+  {
+    "technology": "XML",
+    "category": "languages",
+    "expected": "technologies/languages/xml.png"
+  },
+  {
+    "technology": "Babel",
+    "category": "tooling",
+    "expected": "technologies/tooling/babel.png"
+  },
+  {
+    "technology": "esbuild",
+    "category": "tooling",
+    "expected": "technologies/tooling/esbuild.png"
+  },
+  {
+    "technology": "SWC",
+    "category": "tooling",
+    "expected": "technologies/tooling/swc.png"
+  },
+  {
+    "technology": "Turborepo",
+    "category": "tooling",
+    "expected": "technologies/tooling/turborepo.png"
+  },
+  {
+    "technology": "Nx",
+    "category": "tooling",
+    "expected": "technologies/tooling/nx.png"
+  },
+  {
+    "technology": "Grunt",
+    "category": "tooling",
+    "expected": "technologies/tooling/grunt.png"
+  },
+  {
+    "technology": "Gulp",
+    "category": "tooling",
+    "expected": "technologies/tooling/gulp.png"
+  },
+  {
+    "technology": "Kubernetes",
+    "category": "tooling",
+    "expected": "technologies/tooling/kubernetes.png"
+  },
+  {
+    "technology": "GitLab",
+    "category": "tooling",
+    "expected": "technologies/tooling/gitlab.png"
+  },
+  {
+    "technology": "Jenkins",
+    "category": "tooling",
+    "expected": "technologies/tooling/jenkins.png"
+  },
+  {
+    "technology": "Terraform",
+    "category": "tooling",
+    "expected": "technologies/tooling/terraform.png"
+  },
+  {
+    "technology": "Ansible",
+    "category": "tooling",
+    "expected": "technologies/tooling/ansible.png"
+  },
+  {
+    "technology": "Nginx",
+    "category": "tooling",
+    "expected": "technologies/tooling/nginx.png"
+  },
+  {
+    "technology": "Apache",
+    "category": "tooling",
+    "expected": "technologies/tooling/apache.png"
+  },
+  {
+    "technology": "Linux",
+    "category": "tooling",
+    "expected": "technologies/tooling/linux.png"
+  },
+  {
+    "technology": "Ubuntu",
+    "category": "tooling",
+    "expected": "technologies/tooling/ubuntu.png"
+  }
+]

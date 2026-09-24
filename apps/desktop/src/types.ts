@@ -174,6 +174,63 @@ export type RuntimeCapabilities = {
   tools: { name: string; executable: string; available: boolean; version: string | null }[];
 };
 
+// Compact analysis result consumed by the three focused desktop views.
+export type FocusedTechnology = {
+  category: string;
+  name: string;
+  classification: string;
+  confidence: number;
+  detection_kind: string;
+  evidence?: Evidence[];
+};
+export type FocusedBackendEndpoint = {
+  id: string;
+  method: string;
+  path: string;
+  file: string;
+  creator: string;
+  controller?: string | null;
+  action?: string | null;
+  line?: number | null;
+};
+export type FocusedFrontendCall = {
+  method: string;
+  path: string;
+  component_id: string;
+  file: string;
+  symbol?: string | null;
+  line?: number | null;
+};
+export type FocusedProjectUnit = {
+  id: string;
+  root: string;
+  name: string;
+  role: string;
+  files: number;
+  technologies: FocusedTechnology[];
+  backend_endpoints: FocusedBackendEndpoint[];
+  frontend_calls: FocusedFrontendCall[];
+};
+export type FocusedEndpointLink = {
+  consumer_project_unit_id: string;
+  consumer_component_id: string;
+  consumer_file: string;
+  consumer_symbol?: string | null;
+  consumer_line?: number | null;
+  method: string;
+  path: string;
+  provider_project_unit_id: string;
+  provider_entrypoint_id: string;
+  provider_file: string;
+  confidence: number;
+};
+export type FocusedRepositoryAnalysis = {
+  root: string;
+  name: string;
+  project_units: FocusedProjectUnit[];
+  endpoint_links: FocusedEndpointLink[];
+};
+
 export type AnalysisProgress = {
   workspaceId: string;
   repositoryId: string | null;

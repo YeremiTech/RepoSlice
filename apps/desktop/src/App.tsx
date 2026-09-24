@@ -1,406 +1,123 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
-import { listen } from "@tauri-apps/api/event";
-import { addRepository, cancelAnalysis, cloneRepository, createWorkspace, createWorkspaceCapsule, deleteRepository, deleteWorkspace, detectRuntime, listRepositories, listWorkspaceCapsules, listWorkspaces, loadCachedWorkspace, resetAll, scanRepository, scanWorkspace, updateRepository, verifyCapsule } from "./lib/client";
-import type { AnalysisProgress, CapsuleSummary, EngineState, RepositoryRecord, RuntimeCapabilities, VerificationReport, View, WorkspaceModel, WorkspaceRecord } from "./types";
-import Sidebar from "./components/Sidebar";
-import ProjectToolbar from "./components/ProjectToolbar";
-import Modal from "./components/Modal";
-import OverviewView from "./views/OverviewView";
-import ProjectsView from "./views/ProjectsView";
-import ArchitectureView from "./views/ArchitectureView";
-import AuditView from "./views/AuditView";
-import ComponentsView from "./views/ComponentsView";
-import EntrypointsView from "./views/EntrypointsView";
-import DependenciesView from "./views/DependenciesView";
-import CapsulesView from "./views/CapsulesView";
-import { translateEngineErrorDetail, useI18n } from "./i18n";
+import { analyzeSource } from "./lib/client";
+import { assetUrl, categoryLabels, fallbackUrl, technologyCategory, technologyIconUrl } from "./lib/technologyIcons";
+import { endpointRows, filterRows, emptyFilters, shortFile, uniqueTechnologies } from "./lib/presentation";
+import type { EndpointRow, Filters } from "./lib/presentation";
+import MetricCard from "./components/MetricCard";
+import PngImage from "./components/PngImage";
+import { ApiIcon, CodeIcon, DashboardIcon, DatabaseIcon, FolderIcon, GitHubIcon, GlobeIcon, LinkIcon, ScanIcon, ServerIcon, StackIcon } from "./components/FocusIcons";
+import type { FocusedRepositoryAnalysis, FocusedTechnology } from "./types";
 
-function App() {
-  const { t } = useI18n();
-  const [workspaces, setWorkspaces] = useState<WorkspaceRecord[]>([]);
-  const [workspaceId, setWorkspaceId] = useState("default");
-  const [repositories, setRepositories] = useState<RepositoryRecord[]>([]);
-  const [repositoryId, setRepositoryId] = useState("");
-  const [unitId, setUnitId] = useState("");
-  const [workspace, setWorkspace] = useState<WorkspaceModel | null>(null);
-  const [view, setView] = useState<View>("overview");
-  const [selectedTarget, setSelectedTarget] = useState("");
-  const [capsules, setCapsules] = useState<CapsuleSummary[]>([]);
-  const [verificationByPath, setVerificationByPath] = useState<Record<string, VerificationReport | undefined>>({});
-  const [verifyingPath, setVerifyingPath] = useState("");
-  const [runtime, setRuntime] = useState<RuntimeCapabilities | null>(null);
-  const [engineState, setEngineState] = useState<EngineState>("checking");
-  const [busy, setBusy] = useState(false);
-  const [cloneOpen, setCloneOpen] = useState(false);
-  const [cloneUrl, setCloneUrl] = useState("");
-  const [workspaceCreateOpen, setWorkspaceCreateOpen] = useState(false);
-  const [workspaceCreateName, setWorkspaceCreateName] = useState("");
-  const [appError, setAppError] = useState("");
-  const [analysisProgress, setAnalysisProgress] = useState<AnalysisProgress | null>(null);
-  const workspaceLoadRequest = useRef(0);
-
-  function showError(context: string, error: unknown) {
-    const detail = error instanceof Error ? error.message : String(error);
-    setAppError(`${context}: ${detail ? translateEngineErrorDetail(detail, t) : t("error.unknown")}`);
-  }
-
-  useEffect(() => {
-    const requestId = ++workspaceLoadRequest.current;
-    void (async () => {
-      try {
-        setRuntime(await detectRuntime());
-        setEngineState("ready");
-      } catch (error) {
-        setEngineState("unavailable");
-        showError(t("error.runtime"), error);
-      }
-      try {
-        const items = await listWorkspaces();
-        const selected = items.find((item) => item.id === "default")?.id ?? items[0]?.id ?? "default";
-        const [repos, workspaceCapsules, cachedWorkspace] = await Promise.all([
-          listRepositories(selected),
-          listWorkspaceCapsules(selected),
-          loadCachedWorkspace(selected)
-        ]);
-        if (requestId !== workspaceLoadRequest.current) return;
-        setWorkspaces(items);
-        setWorkspaceId(selected);
-        setRepositories(repos);
-        setCapsules(workspaceCapsules);
-        setWorkspace(cachedWorkspace);
-      } catch (error) {
-        if (requestId === workspaceLoadRequest.current) showError(t("error.loadWorkspace"), error);
-      }
-    })();
-  }, []);
-
-  useEffect(() => {
-    let disposed = false;
-    let unlisten: (() => void) | undefined;
-    void listen<AnalysisProgress>("analysis-progress", (event) => {
-      if (!disposed) setAnalysisProgress(event.payload);
-    }).then((cleanup) => {
-      if (disposed) cleanup();
-      else unlisten = cleanup;
-    });
-    return () => {
-      disposed = true;
-      unlisten?.();
-    };
-  }, []);
-
-  const selectedRepository = workspace?.repositories.find((repository) => repository.id === repositoryId);
-  const selectedUnit = selectedRepository?.projectUnits.find((unit) => unit.id === unitId);
-  const selectedAnalysis = selectedRepository?.audit.analysis ?? repositories.find((item) => item.id === repositoryId)?.analysis ?? null;
-  const model = useMemo(() => {
-    if (selectedUnit) return selectedUnit.model;
-    if (!workspace) return null;
-    if (repositoryId && !selectedRepository) return null;
-    const units = workspace.repositories.flatMap((repository) => !repositoryId || repository.id === repositoryId ? repository.projectUnits.map((unit) => ({ repository, unit })) : []);
-    const scoped = (repository: string, unit: string, id: string) => `${repository}|${unit}|${id}`;
-    const dependencies = units.flatMap(({ repository, unit }) => unit.model.dependencies.map((dependency) => ({ sourceId: scoped(repository.id, unit.id, dependency.sourceId), targetId: scoped(repository.id, unit.id, dependency.targetId), kind: dependency.kind })));
-    for (const dependency of workspace.crossProjectDependencies) {
-      const targetUnit = workspace.repositories.flatMap((repository) => repository.projectUnits).find((unit) => unit.id === dependency.targetProjectUnitId);
-      const targetComponent = dependency.targetComponentId ?? targetUnit?.model.entrypoints.find((entrypoint) => entrypoint.id === dependency.targetEntrypointId)?.componentId;
-      if (targetComponent) dependencies.push({ sourceId: scoped(dependency.sourceRepositoryId, dependency.sourceProjectUnitId, dependency.sourceComponentId), targetId: scoped(dependency.targetRepositoryId, dependency.targetProjectUnitId, targetComponent), kind: `${dependency.kind} ${dependency.confidence}%` });
-    }
-    const technologies = units.flatMap(({ unit }) => unit.model.technologies);
-    const compatibility = units.reduce((highest, { unit }) => compatibilityRank(unit.model.compatibility) > compatibilityRank(highest) ? unit.model.compatibility : highest, "L0");
-    return { root: workspace.name, name: workspace.name, files: units.reduce((total, item) => total + item.unit.model.files, 0), compatibility, technologies,
-      components: units.flatMap(({ repository, unit }) => unit.model.components.map((component) => ({ ...component, id: scoped(repository.id, unit.id, component.id), repositoryName: repository.name, projectUnitName: unit.name }))),
-      entrypoints: units.flatMap(({ repository, unit }) => unit.model.entrypoints.map((entrypoint) => ({ ...entrypoint, id: scoped(repository.id, unit.id, entrypoint.id), componentId: scoped(repository.id, unit.id, entrypoint.componentId), repositoryName: repository.name, projectUnitName: unit.name }))), dependencies,
-      analysis: {
-        frameworkDetections: units.flatMap(({ unit }) => unit.model.analysis.frameworkDetections),
-        symbols: units.flatMap(({ repository, unit }) => unit.model.analysis.symbols.map((symbol) => ({ ...symbol, symbolId: scoped(repository.id, unit.id, symbol.symbolId) }))),
-        entrypoints: units.flatMap(({ repository, unit }) => unit.model.analysis.entrypoints.map((entrypoint) => ({ ...entrypoint, entrypointId: scoped(repository.id, unit.id, entrypoint.entrypointId) }))),
-        dependencies: units.flatMap(({ repository, unit }) => unit.model.analysis.dependencies.map((dependency) => ({ ...dependency, sourceId: scoped(repository.id, unit.id, dependency.sourceId), targetId: scoped(repository.id, unit.id, dependency.targetId) }))),
-        runtimeRequirements: units.flatMap(({ unit }) => unit.model.analysis.runtimeRequirements),
-        diagnostics: units.flatMap(({ unit }) => unit.model.analysis.diagnostics),
-      } };
-  }, [workspace, repositoryId, selectedUnit]);
-  const targetParts = selectedTarget.split("|");
-  const rawTarget = targetParts.slice(2).join("|");
-  const localTarget = selectedUnit ? rawTarget : rawTarget.startsWith("component:") ? `component:${targetParts[0]}|${targetParts[1]}|${rawTarget.slice(10)}` : selectedTarget;
-
-  const targets = useMemo(() => {
-    if (!workspace) return [];
-    return workspace.repositories.flatMap((repository) => repository.projectUnits.flatMap((unit) => [
-      ...unit.model.entrypoints.map((entrypoint) => ({ id: `${repository.id}|${unit.id}|${entrypoint.id}`, label: `${repository.name} / ${unit.name} / ${entrypoint.name}`, type: entrypoint.kind })),
-      ...unit.model.components.slice(0, 1500).map((component) => ({ id: `${repository.id}|${unit.id}|component:${component.id}`, label: `${repository.name} / ${unit.name} / ${component.name}`, type: component.kind }))
-    ]));
-  }, [workspace]);
-
-  async function refreshRepositories(id = workspaceId) { const items = await listRepositories(id); setRepositories(items); return items; }
-
-  async function handleWorkspaceChange(id: string) {
-    const requestId = ++workspaceLoadRequest.current;
-    setAppError("");
-    setWorkspaceId(id);
-    setWorkspace(null);
-    setRepositoryId("");
-    setUnitId("");
-    setSelectedTarget("");
-    setCapsules([]);
-    setAnalysisProgress(null);
+type View = "resumen" | "tecnologias" | "endpoints";
+type Status = "pending" | "running" | "complete" | "error";
+export default function App() {
+  const [mode, setMode] = useState<"local" | "github">("local");
+  const [localPath, setLocalPath] = useState("");
+  const [githubUrl, setGithubUrl] = useState("");
+  const [analysis, setAnalysis] = useState<FocusedRepositoryAnalysis | null>(null);
+  const [view, setView] = useState<View>("resumen");
+  const [status, setStatus] = useState<Status>("pending");
+  const [error, setError] = useState("");
+  const [duration, setDuration] = useState(0);
+  const running = useRef(false);
+  const busy = status === "running";
+  const source = mode === "local" ? localPath : githubUrl;
+  async function chooseFolder() {
     try {
-      const [repos, workspaceCapsules, cachedWorkspace] = await Promise.all([
-        listRepositories(id),
-        listWorkspaceCapsules(id),
-        loadCachedWorkspace(id)
-      ]);
-      if (requestId !== workspaceLoadRequest.current) return;
-      setRepositories(repos);
-      setCapsules(workspaceCapsules);
-      setWorkspace(cachedWorkspace);
-    } catch (error) {
-      if (requestId === workspaceLoadRequest.current) showError(t("error.changeWorkspace"), error);
-    }
+      const selected = await open({directory: true, multiple: false, title: "Seleccionar proyecto"});
+      if (typeof selected === "string") {setLocalPath(selected);setMode("local");}
+    } catch (cause) {setError(`No se pudo abrir el selector de carpetas: ${String(cause)}`);}
   }
-
-  function handleRepositoryChange(id: string) {
-    setRepositoryId(id);
-    setUnitId(id ? workspace?.repositories.find((item) => item.id === id)?.projectUnits[0]?.id ?? "" : "");
-    setSelectedTarget("");
+  async function runAnalysis() {
+    if (running.current || !source.trim()) return;
+    if (mode === "github" && !/^https?:\/\/github\.com\/[^/]+\/[^/]+/i.test(source.trim())) {setError("Introduce una URL de repositorio de GitHub válida.");return;}
+    running.current = true;setStatus("running");setError("");setAnalysis(null);setView("resumen");
+    const start = performance.now();
+    try {setAnalysis(await analyzeSource(source.trim()));setDuration((performance.now()-start)/1000);setStatus("complete");}
+    catch (cause) {setError(cause instanceof Error ? cause.message : String(cause));setStatus("error");}
+    finally {running.current = false;}
   }
-
-  function handleUnitChange(id: string) {
-    setUnitId(id);
-    setSelectedTarget("");
-  }
-
-  async function handlePickRepository() {
-    setAppError("");
-    setBusy(true);
-    try {
-      const selected = await open({ directory: true, multiple: false, title: t("app.selectRepository") });
-      if (typeof selected !== "string") return;
-      const repository = await addRepository(workspaceId, selected);
-      await refreshRepositories(); setRepositoryId(repository.id); setWorkspace(null); setView("projects");
-    } catch (error) { showError(t("error.addRepository"), error); } finally { setBusy(false); }
-  }
-
-  async function handleClone() {
-    if (!cloneUrl.trim()) return;
-    setAppError("");
-    setBusy(true);
-    try {
-      const repository = await cloneRepository(workspaceId, cloneUrl.trim());
-      await refreshRepositories(); setCloneOpen(false); setCloneUrl(""); setRepositoryId(repository.id);
-      await handleScan(repository.id);
-    } catch (error) { showError(t("error.cloneRepository"), error); } finally { setBusy(false); }
-  }
-
-  async function handleCreateWorkspace(name?: string) {
-    const workspaceName = name?.trim();
-    if (!workspaceName) {
-      setWorkspaceCreateName("");
-      setWorkspaceCreateOpen(true);
-      return;
-    }
-    setAppError("");
-    setBusy(true);
-    try {
-      const created = await createWorkspace(workspaceName);
-      setWorkspaces(await listWorkspaces());
-      setWorkspaceCreateOpen(false);
-      setWorkspaceCreateName("");
-      await handleWorkspaceChange(created.id);
-    } catch (error) {
-      showError(t("error.createWorkspace"), error);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleRemoveRepository(id: string) {
-    if (!id) return;
-    setAppError("");
-    setBusy(true);
-    try {
-      await deleteRepository(workspaceId, id);
-      await refreshRepositories();
-      setWorkspace(await loadCachedWorkspace(workspaceId));
-      if (repositoryId === id) {
-        setRepositoryId("");
-        setUnitId("");
-        setSelectedTarget("");
-      }
-    } catch (error) { showError(t("error.removeRepository"), error); } finally { setBusy(false); }
-  }
-
-  async function handleUpdateRepository(id: string) {
-    if (!id) return;
-    setAppError("");
-    setBusy(true);
-    try {
-      await updateRepository(workspaceId, id);
-      await refreshRepositories();
-    } catch (error) {
-      showError(t("error.updateRepository"), error);
-      setBusy(false);
-      return;
-    }
-    setBusy(false);
-    await handleScan(id);
-  }
-
-  async function handleCancelAnalysis() {
-    try {
-      const requested = await cancelAnalysis(workspaceId);
-      if (requested) {
-        setAnalysisProgress((current) => current ? { ...current, stage: "cancelling" } : current);
-      }
-    } catch (error) { showError(t("error.cancelAnalysis"), error); }
-  }
-
-  async function handleResetWorkspace() {
-    setAppError("");
-    setBusy(true);
-    try {
-      await deleteWorkspace(workspaceId);
-      const items = await listWorkspaces();
-      setWorkspaces(items);
-      const selected = items[0]?.id ?? "default";
-      setWorkspaceId(selected);
-      const repos = await listRepositories(selected);
-      setRepositories(repos);
-      setWorkspace(null); setRepositoryId(""); setUnitId(""); setSelectedTarget(""); setCapsules([]);
-    } catch (error) { showError(t("error.resetWorkspace"), error); } finally { setBusy(false); }
-  }
-
-  async function handleResetAll() {
-    setAppError("");
-    setBusy(true);
-    try {
-      await resetAll();
-      setWorkspaces([]); setWorkspaceId("default"); setRepositories([]); setRepositoryId(""); setUnitId("");
-      setWorkspace(null); setSelectedTarget(""); setCapsules([]); setVerificationByPath({});
-    } catch (error) { showError(t("error.resetAll"), error); } finally { setBusy(false); }
-  }
-
-  async function handleScan(preferredRepositoryId = repositoryId) {
-    setAppError("");
-    setBusy(true);
-    const scanningAll = !preferredRepositoryId;
-    try {
-      const result = preferredRepositoryId
-        ? await scanRepository(workspaceId, preferredRepositoryId)
-        : await scanWorkspace(workspaceId);
-      setWorkspace(result);
-      await refreshRepositories(workspaceId);
-      if (scanningAll) {
-        setRepositoryId("");
-        setUnitId("");
-        setSelectedTarget("");
-      } else {
-        const repository = result.repositories.find((item) => item.id === preferredRepositoryId) ?? result.repositories[0];
-        const unit = repository?.projectUnits[0];
-        setRepositoryId(repository?.id ?? "");
-        setUnitId(unit?.id ?? "");
-        const target = unit?.model.entrypoints[0]?.id ?? (unit?.model.components[0] ? `component:${unit.model.components[0].id}` : "");
-        setSelectedTarget(unit && repository && target ? `${repository.id}|${unit.id}|${target}` : "");
-      }
-      setView("overview");
-    } catch (error) {
-      try { await refreshRepositories(workspaceId); } catch {}
-      const detail = error instanceof Error ? error.message : String(error);
-      if (!detail.includes("Analysis was cancelled")) showError(t("error.scan"), error);
-    } finally { setBusy(false); setAnalysisProgress(null); }
-  }
-
-  function handleTargetChange(value: string) {
-    setSelectedTarget(value);
-    const parts = value.split("|");
-    if (parts.length >= 2 && parts[0] && parts[1]) {
-      const newRepositoryId = parts[0];
-      const newUnitId = parts[1];
-      if (newRepositoryId !== repositoryId) {
-        setRepositoryId(newRepositoryId);
-        const newUnit = workspace?.repositories.find((item) => item.id === newRepositoryId)?.projectUnits.find((u) => u.id === newUnitId);
-        setUnitId(newUnit ? newUnitId : workspace?.repositories.find((item) => item.id === newRepositoryId)?.projectUnits[0]?.id ?? "");
-      } else {
-        setUnitId(newUnitId);
-      }
-    }
-  }
-
-  function handleViewTarget(target: string) {
-    if (selectedUnit && selectedRepository) { setSelectedTarget(`${selectedRepository.id}|${selectedUnit.id}|${target}`); return; }
-    if (target.startsWith("component:")) {
-      const [repository, unit, ...id] = target.slice(10).split("|");
-      setSelectedTarget(`${repository}|${unit}|component:${id.join("|")}`);
-    } else {
-      setSelectedTarget(target);
-    }
-  }
-
-  async function handleCreateCapsule() {
-    const [targetRepository, targetUnit, ...targetParts] = selectedTarget.split("|");
-    const target = targetParts.join("|");
-    if (!targetRepository || !targetUnit || !target) return;
-    setAppError("");
-    setBusy(true);
-    try { const capsule = await createWorkspaceCapsule(workspaceId, targetRepository, targetUnit, target); setCapsules((items) => [capsule, ...items.filter((item) => item.path !== capsule.path)]); setView("capsules"); } catch (error) { showError(t("error.createCapsule"), error); } finally { setBusy(false); }
-  }
-
-  async function handleVerifyCapsule(capsule: CapsuleSummary) {
-    setAppError("");
-    setVerifyingPath(capsule.path);
-    try { const report = await verifyCapsule(capsule.path); setVerificationByPath((current) => ({ ...current, [capsule.path]: report })); } catch (error) { showError(t("error.verifyCapsule"), error); } finally { setVerifyingPath(""); }
-  }
-
-  return <div className="app-shell"><Sidebar view={view} engineState={engineState} onChange={setView} /><main className="main-content">
-    {appError && <div className="app-error-banner floating-alert" role="alert"><span>{appError}</span><button type="button" aria-label={t("app.closeError")} onClick={() => setAppError("")}>×</button></div>}
-    {analysisProgress && analysisProgress.workspaceId === workspaceId && <AnalysisProgressBanner progress={analysisProgress} onCancel={() => void handleCancelAnalysis()} t={t} />}
-    {(["overview", "audit", "components", "entrypoints", "dependencies"] as View[]).includes(view) &&
-      <ProjectToolbar workspaces={workspaces} workspaceId={workspaceId} repositories={repositories} repositoryId={repositoryId} unitId={unitId} workspace={workspace} selectedTarget={selectedTarget} targets={targets} busy={busy} showTarget={view === "dependencies"} onWorkspaceChange={(id) => void handleWorkspaceChange(id)} onRepositoryChange={handleRepositoryChange} onUnitChange={handleUnitChange} onTargetChange={handleTargetChange} onScan={() => void handleScan()} onCreateWorkspace={handleCreateWorkspace} />}
-    <div className="view-container">
-      {view === "overview" && <OverviewView model={model} runtime={runtime} workspace={unitId ? null : workspace} analysis={unitId ? selectedAnalysis : null} onOpenAudit={() => setView("audit")} />}
-      {view === "projects" && <ProjectsView repositories={repositories} workspace={workspace} currentId={repositoryId} onSelect={handleRepositoryChange} onAdd={handlePickRepository} onClone={() => setCloneOpen(true)} onUpdate={(id) => void handleUpdateRepository(id)} onRemove={(id) => void handleRemoveRepository(id)} onCreateWorkspace={(name) => void handleCreateWorkspace(name)} onResetWorkspace={() => void handleResetWorkspace()} onResetAll={() => void handleResetAll()} busy={busy} />}
-      {view === "architecture" && <ArchitectureView workspace={workspace} />}
-      {view === "audit" && <AuditView repositories={repositories} workspace={workspace} repositoryId={repositoryId} busy={busy} onScan={() => void handleScan()} />}
-      {view === "components" && <ComponentsView model={model} selectedTarget={localTarget} onSelectTarget={handleViewTarget} onCreateCapsule={handleCreateCapsule} canCreateCapsule={Boolean(selectedTarget)} busy={busy} />}
-      {view === "entrypoints" && <EntrypointsView model={model} selectedTarget={localTarget} onSelectTarget={handleViewTarget} onCreateCapsule={handleCreateCapsule} canCreateCapsule={Boolean(selectedTarget)} busy={busy} />}
-      {view === "dependencies" && <DependenciesView model={model} selectedTarget={localTarget} workspace={workspace} workspaceId={workspaceId} unitId={unitId} onCreateCapsule={handleCreateCapsule} canCreateCapsule={Boolean(selectedTarget)} busy={busy} />}
-      {view === "capsules" && <CapsulesView capsules={capsules} verificationByPath={verificationByPath} verifyingPath={verifyingPath} onVerify={(capsule) => void handleVerifyCapsule(capsule)} />}
-    </div>
-  </main>
-  {workspaceCreateOpen && <Modal title={t("projects.newWorkspace")} className="project-modal project-modal--workspace" onClose={() => { if (!busy) setWorkspaceCreateOpen(false); }} footer={<><button className="button secondary" disabled={busy} onClick={() => setWorkspaceCreateOpen(false)}>{t("common.cancel")}</button><button className="button primary" disabled={busy || !workspaceCreateName.trim()} onClick={() => void handleCreateWorkspace(workspaceCreateName)}>{t("common.create")}</button></>}>
-    <label>{t("projects.workspaceName")}<input autoFocus value={workspaceCreateName} onChange={(event) => setWorkspaceCreateName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && workspaceCreateName.trim() && !busy) void handleCreateWorkspace(workspaceCreateName); }} /></label>
-  </Modal>}
-  {cloneOpen && <Modal title={t("app.cloneRepository")} className="project-modal project-modal--clone" onClose={() => { if (!busy) setCloneOpen(false); }} footer={<><button className="button secondary" disabled={busy} onClick={() => setCloneOpen(false)}>{t("common.cancel")}</button><button className="button primary" disabled={busy || !cloneUrl.trim()} onClick={() => void handleClone()}>{busy ? t("app.cloning") : t("app.clone")}</button></>}><label>{t("app.repositoryUrl")}<input autoFocus value={cloneUrl} onChange={(event) => setCloneUrl(event.target.value)} placeholder="https://github.com/org/project.git" /></label></Modal>}
-</div>;
-}
-
-export default App;
-
-type Translate = (key: string, params?: Record<string, string | number>) => string;
-
-function AnalysisProgressBanner({ progress, onCancel, t }: { progress: AnalysisProgress; onCancel: () => void; t: Translate }) {
-  const total = Math.max(progress.totalRepositories, 1);
-  const base = Math.round((progress.completedRepositories / total) * 85);
-  const percent = progress.stage === "completed" ? 100 : progress.stage === "linking" ? 97 : progress.stage === "validating" ? 92 : Math.min(90, Math.max(4, 5 + base));
-  const stageKey = `analysisProgress.${progress.stage}`;
-  const stage = t(stageKey, { repository: progress.repositoryName ?? "" });
-  return <div className="analysis-progress-layer" role="presentation">
-    <div className="analysis-progress-banner" role="status" aria-live="polite">
-      <div className="analysis-progress-banner__head">
-        <div className="analysis-progress-banner__copy">
-          <span className="analysis-progress-banner__pulse" aria-hidden="true" />
-          <div><strong>{t("analysisProgress.title")}</strong><span title={stage}>{stage}</span></div>
+  return <div className="app-shell">
+    <aside className="sidebar">
+      <div className="brand"><PngImage src={assetUrl("branding/reposlice.png")} alt="RepoSlice" variant="brand" size={204} className="brand-logo" style={{height: 104}}/></div>
+      <nav className="sidebar-nav" aria-label="Navegación principal">
+        {([["resumen", "Resumen", <DashboardIcon/>], ["tecnologias", "Tecnologías", <StackIcon/>], ["endpoints", "Endpoints", <ApiIcon/>]] as const).map(([id, label, icon]) => <button type="button" key={id} className={`nav-button ${view === id ? "active" : ""}`} aria-current={view === id ? "page" : undefined} onClick={() => setView(id)}>{icon}{label}</button>)}
+      </nav>
+      <footer className="sidebar-footer"><span>v0.4.0</span><span className="engine-status" data-status={status}>{busy ? "Analizando" : status === "error" ? "Error" : "Listo"}</span></footer>
+    </aside>
+    <main className="main-content">
+      <form className="source-toolbar" onSubmit={event => {event.preventDefault();void runAnalysis();}}>
+        <div className="source-mode" aria-label="Origen del proyecto">
+          <button type="button" disabled={busy} aria-pressed={mode === "local"} className={mode === "local" ? "active" : ""} onClick={() => setMode("local")}><FolderIcon/>Local</button>
+          <button type="button" disabled={busy} aria-pressed={mode === "github"} className={mode === "github" ? "active" : ""} onClick={() => setMode("github")}><GitHubIcon/>GitHub</button>
         </div>
-        <span className="analysis-progress-banner__percent">{percent}%</span>
+        <div className="source-input-shell"><FolderIcon/><input aria-label={mode === "local" ? "Ruta del proyecto local" : "URL de GitHub"} disabled={busy} value={source} onChange={event => mode === "local" ? setLocalPath(event.target.value) : setGithubUrl(event.target.value)} placeholder={mode === "local" ? "Selecciona la carpeta de tu proyecto…" : "https://github.com/owner/repository"}/>{mode === "local" && <button type="button" className="browse-button" onClick={() => void chooseFolder()} disabled={busy}>Explorar</button>}</div>
+        <button className="analyze-button" disabled={busy || !source.trim()}><ScanIcon/>{busy ? "Analizando…" : "Analizar"}</button>
+      </form>
+      <div className="view-container" aria-busy={busy}>
+        {error && <div className="error-banner" role="alert"><strong>No se pudo completar la operación</strong><span>{error}</span></div>}
+        {!analysis ? <><section className="welcome-state"><ScanIcon size={52}/><h1>Conoce lo que hay en tu código.</h1><p>Selecciona una carpeta o introduce un repositorio de GitHub para descubrir tecnologías, endpoints y sus relaciones.</p><span>{busy ? "El motor está procesando el proyecto…" : "Los resultados aparecerán aquí después del análisis."}</span></section><AnalysisStatus status={status} duration={duration}/></> : <>
+          {view === "resumen" && <Overview analysis={analysis} status={status} duration={duration}/>}
+          {view === "tecnologias" && <Technologies analysis={analysis}/>}
+          {view === "endpoints" && <Endpoints key={analysis.root} analysis={analysis}/>}
+        </>}
       </div>
-      <div className="analysis-progress-banner__track" aria-label={t("analysisProgress.title")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent} role="progressbar">
-        <span style={{ width: `${percent}%` }} />
-      </div>
-      {progress.stage !== "completed" && progress.stage !== "cancelling" && <button className="button secondary" type="button" onClick={onCancel}>{t("common.cancel")}</button>}
-    </div>
+    </main>
   </div>;
 }
-
-function compatibilityRank(value: string): number {
-  const match = /^L([0-5])$/.exec(value);
-  return match ? Number(match[1]) : 0;
+function SectionTitle({icon, title, count}: {icon: ReactNode; title: string; count?: ReactNode}) {return <header className="section-header">{icon}<h2>{title}</h2>{count !== undefined && <span className="count-badge">{count}</span>}</header>;}
+function TechnologyImage({technology, size=52}: {technology: FocusedTechnology; size?: number}) {const category=technologyCategory(technology);return <PngImage src={technologyIconUrl(technology.name, category)} fallback={fallbackUrl(category)} alt="" variant="logo" size={size}/>;}
+function TechTile({technology}: {technology: FocusedTechnology}) {return <article className="tech-tile" title={`${technology.classification} · ${technology.detection_kind} · Confianza: ${technology.confidence}%`}><TechnologyImage technology={technology}/><span>{technology.name}</span></article>;}
+function Overview({analysis, status, duration}: {analysis: FocusedRepositoryAnalysis; status: Status; duration: number}) {
+ const techs=uniqueTechnologies(analysis);const rows=endpointRows(analysis);
+ return <div className="view-stack">
+   <div className="metrics-grid">
+     <MetricCard label="Proyectos detectados" value={analysis.project_units.length} tone="violet" icon={<StackIcon size={32}/>}/>
+     <MetricCard label="Tecnologías" value={techs.length} tone="cyan" icon={<CodeIcon size={32}/>}/>
+     <MetricCard label="Endpoints backend" value={rows.filter(r=>r.type==="backend").length} tone="green" icon={<ServerIcon size={32}/>}/>
+     <MetricCard label="Llamadas frontend" value={rows.filter(r=>r.type==="frontend").length} tone="violet" icon={<ApiIcon size={32}/>}/>
+     <MetricCard label="Relaciones encontradas" value={analysis.endpoint_links.length} tone="cyan" icon={<LinkIcon size={32}/>}/>
+   </div>
+   <div className="overview-columns">
+     <section className="neo-panel"><SectionTitle title="Resumen del stack" icon={<StackIcon size={28}/>} count={`${techs.length} tecnologías`}/><div className="stack-grid">{techs.map(t=><TechTile key={t.name} technology={t}/>)}{!techs.length && <Empty>No se detectaron tecnologías.</Empty>}</div></section>
+     <section className="neo-panel"><SectionTitle title="Unidades detectadas" icon={<ServerIcon size={28}/>} count={`${analysis.project_units.length} proyectos`}/><div className="unit-list">{analysis.project_units.map(unit=><article className="unit-row" key={unit.id}><FolderIcon size={30}/><div><strong>{unit.name}</strong><span title={unit.root}>{unit.root}</span><small>{unit.files} archivos · {unit.technologies.length} tecnologías</small></div><span className={`role-badge role-${unit.role.toLowerCase()}`}>{unit.role}</span></article>)}{!analysis.project_units.length && <Empty>No se detectaron unidades.</Empty>}</div></section>
+   </div>
+   <AnalysisStatus status={status} duration={duration}/>
+ </div>;
 }
+function AnalysisStatus({status, duration}: {status: Status; duration: number}) {
+ const stages=["Descubrir proyecto", "Detectar tecnologías", "Detectar endpoints backend", "Detectar consumo frontend", "Relacionar frontend-backend"];
+ return <section className="neo-panel analysis-status" data-status={status} aria-label="Estado del análisis"><SectionTitle title="Estado del análisis" icon={<ScanIcon size={28}/>} count={status === "complete" ? `Completado en ${duration.toFixed(1)} s` : ({pending:"Pendiente",running:"En ejecución",error:"Error"} as const)[status]}/><ol className="analysis-stages">{stages.map((stage,i)=><li key={stage}><PngImage src={assetUrl(status==="complete" ? "status/complete.png" : "actions/analyze.png")} alt="" size={28}/><strong>{i+1}. {stage}</strong><span>{status==="complete" ? "Completado" : status==="running" ? "Procesando análisis" : status==="error" ? "Sin resultado confirmado" : "Pendiente"}</span></li>)}</ol>{status === "running" && <p className="status-note" role="status">El motor no comunica avances por etapa. Esperando el resultado completo.</p>}</section>;
+}
+function Technologies({analysis}: {analysis: FocusedRepositoryAnalysis}) {
+ const [project,setProject]=useState("");
+ const selected={...analysis,project_units:analysis.project_units.filter(u=>!project || u.id===project)};
+ const techs=uniqueTechnologies(selected);
+ const evidence=techs.flatMap(t=>(t.evidence??[]).filter(e=>e.source.trim()).map(e=>({...e,technology:t.name})));
+ const confidence=techs.length?Math.round(techs.reduce((n,t)=>n+t.confidence,0)/techs.length):null;
+ return <div className="view-stack">
+   <section className="project-summary neo-panel"><FolderIcon size={36}/><div><strong>{analysis.name}</strong><span>{analysis.root}</span></div><div className="summary-number"><b>{techs.length}</b><span>Tecnologías</span></div><div className="summary-number"><b>{selected.project_units.reduce((n,u)=>n+u.files,0)}</b><span>Archivos analizados</span></div><label>Proyecto<select value={project} onChange={e=>setProject(e.target.value)}><option value="">Todos los proyectos</option>{analysis.project_units.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</select></label></section>
+   <div className="category-grid">{Object.entries(categoryLabels).map(([category,label])=>{const items=techs.filter(t=>technologyCategory(t)===category);return <section className="neo-panel" key={category}><SectionTitle icon={category==="databases"||category==="orm"?<DatabaseIcon/>:<CodeIcon/>} title={label} count={`${items.length} detectadas`}/><div className="category-items">{items.map(t=><TechTile key={t.name} technology={t}/>)}{!items.length&&<Empty>Sin detecciones</Empty>}</div></section>;})}</div>
+   <div className="evidence-columns"><section className="neo-panel"><SectionTitle icon={<FolderIcon/>} title="Evidencia encontrada" count={`${new Set(evidence.map(e=>e.source)).size} archivos`}/><div className="evidence-list">{evidence.map((e,i)=><div className="evidence-row" key={`${e.technology}-${i}`}><FolderIcon size={18}/><span title={e.source}>{shortFile(e.source)}<small>{e.detail}</small></span><span>{e.technology}</span><span>{e.confidence}%</span></div>)}{!evidence.length&&<Empty>El análisis no proporcionó archivos de evidencia.</Empty>}</div></section>
+   <section className="neo-panel"><SectionTitle title="Cobertura del análisis" icon={<ScanIcon/>}/><div className="coverage"><div className="confidence-ring" style={{"--confidence":`${confidence??0}%`} as React.CSSProperties}><strong>{confidence===null?"—":`${confidence}%`}</strong><span>Confianza media</span></div><dl><dt>Archivos analizados</dt><dd>{selected.project_units.reduce((n,u)=>n+u.files,0)}</dd><dt>Tecnologías detectadas</dt><dd>{techs.length}</dd><dt>Con evidencia</dt><dd>{techs.filter(t=>t.evidence?.some(e=>e.source.trim())).length}</dd></dl></div><p className="status-note">Promedio de confianza de las tecnologías detectadas. No representa el porcentaje del código cubierto.</p></section></div>
+ </div>;
+}
+function Endpoints({analysis}: {analysis: FocusedRepositoryAnalysis}) {
+ const [filters,setFilters]=useState<Filters>(emptyFilters);
+ const all=endpointRows(analysis);const rows=filterRows(all,filters);
+ const relations=analysis.endpoint_links.filter(link=>rows.some(r=>r.links.includes(link)));
+ const update=(key:keyof Filters,value:string)=>setFilters(previous=>({...previous,[key]:value}));
+ return <div className="view-stack">
+   <div className="endpoint-filters"><label>Buscar<input value={filters.search} placeholder="Rutas, funciones, archivos…" onChange={e=>update("search",e.target.value)}/></label><label>Método HTTP<select value={filters.method} onChange={e=>update("method",e.target.value)}><option value="">Todos</option>{[...new Set(all.map(r=>r.method.toUpperCase()))].sort().map(m=><option key={m}>{m}</option>)}</select></label><label>Tipo<select value={filters.type} onChange={e=>update("type",e.target.value)}><option value="">Todos</option><option value="backend">Backend</option><option value="frontend">Frontend</option></select></label><label>Estado de relación<select value={filters.state} onChange={e=>update("state",e.target.value)}><option value="">Todos</option><option value="matched">Relacionado</option><option value="unmatched">Sin relación</option></select></label><label>Proyecto<select value={filters.project} onChange={e=>update("project",e.target.value)}><option value="">Todos</option>{analysis.project_units.map(u=><option value={u.id} key={u.id}>{u.name}</option>)}</select></label></div>
+   <div className="endpoint-metrics"><MetricCard label="Endpoints backend" value={all.filter(r=>r.type==="backend").length} tone="cyan" icon={<CodeIcon size={32}/>}/><MetricCard label="Llamadas frontend" value={all.filter(r=>r.type==="frontend").length} tone="violet" icon={<ApiIcon size={32}/>}/><MetricCard label="Relaciones encontradas" value={analysis.endpoint_links.length} tone="green" icon={<LinkIcon size={32}/>}/></div>
+   <div className="endpoint-columns">{filters.type!=="frontend"&&<EndpointTable key={`backend:${JSON.stringify(filters)}`} title="Backend" rows={rows.filter(r=>r.type==="backend")}/>} {filters.type!=="backend"&&<EndpointTable key={`frontend:${JSON.stringify(filters)}`} title="Frontend" rows={rows.filter(r=>r.type==="frontend")}/>}</div>
+   <section className="neo-panel"><SectionTitle title="Relaciones frontend ↔ backend" icon={<LinkIcon size={28}/>} count={`${relations.length} relaciones`}/><div className="relation-grid">{relations.map((link,i)=>{const consumer=analysis.project_units.find(u=>u.id===link.consumer_project_unit_id);const provider=analysis.project_units.find(u=>u.id===link.provider_project_unit_id);const endpoint=provider?.backend_endpoints.find(e=>e.id===link.provider_entrypoint_id);return <article className="relation-card" key={i}><div><span>Frontend · {consumer?.name}</span><strong>{link.consumer_symbol||shortFile(link.consumer_file)}</strong><small title={link.consumer_file}>{shortFile(link.consumer_file)}{link.consumer_line?`:${link.consumer_line}`:""}</small></div><div className="relation-confidence"><b>{link.confidence}%</b><LinkIcon/></div><div><span>Backend · {provider?.name}</span><strong>{endpoint?.creator||shortFile(link.provider_file)}</strong><code>{link.method} {endpoint?.path??link.path}</code><small title={link.provider_file}>{shortFile(link.provider_file)}{endpoint?.line?`:${endpoint.line}`:""}</small></div></article>;})}{!relations.length&&<Empty>No hay relaciones confirmadas para estos filtros.</Empty>}</div></section>
+ </div>;
+}
+function EndpointTable({title,rows}: {title:string;rows:EndpointRow[]}) {
+ const [page,setPage]=useState(0);const size=6;const pages=Math.max(1,Math.ceil(rows.length/size));
+ return <section className="neo-panel"><SectionTitle title={title} icon={title==="Backend"?<ServerIcon/>:<GlobeIcon/>} count={rows.length}/><div className="table-scroll"><table><thead><tr><th>Método</th><th>Ruta</th><th>Proyecto</th><th>{title==="Backend"?"Creado por":"Consumido por"}</th><th>Línea</th><th>Estado</th></tr></thead><tbody>{rows.slice(page*size,(page+1)*size).map(row=><tr key={row.key}><td><span className={`method-badge method-${row.method.toLowerCase()}`}>{row.method.toUpperCase()}</span></td><td><code>{row.path}</code></td><td>{row.unitName}</td><td><strong>{row.symbol||shortFile(row.file)}</strong><small title={row.file}>{shortFile(row.file)}</small></td><td>{row.line??"—"}</td><td><span className={row.links.length?"matched":"unmatched"}>{row.links.length?"Relacionado":"Sin relación"}</span></td></tr>)}</tbody></table>{!rows.length&&<Empty>No hay resultados para estos filtros.</Empty>}</div><div className="pagination"><span>{rows.length?`${page*size+1}–${Math.min((page+1)*size,rows.length)}`:"0"} de {rows.length}</span><button onClick={()=>setPage(p=>p-1)} disabled={page===0} aria-label={`Página anterior ${title}`}>Anterior</button><span>{page+1} / {pages}</span><button onClick={()=>setPage(p=>p+1)} disabled={page+1>=pages} aria-label={`Página siguiente ${title}`}>Siguiente</button></div></section>;
+}
+function Empty({children}: {children:ReactNode}) {return <p className="empty-message">{children}</p>;}

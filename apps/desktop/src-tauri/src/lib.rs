@@ -1,3 +1,5 @@
+mod focused_analysis;
+
 use reposlice_capsule::{
     create_workspace_capsule, list_capsules, list_capsules_in, CapsuleSummary,
 };
@@ -11,9 +13,9 @@ use reposlice_verifier::{sandbox_validation_plan, verify_capsule};
 use reposlice_workspace::{
     add_repository, clone_repository, create_workspace, delete_repository,
     install_local_crash_reporting, latest_analysis_record, list_repositories, list_workspaces,
-    load_cached_workspace_model, scan_workspace_controlled, scan_workspace_repository_controlled,
-    update_managed_repository, workspace_root, AnalysisRecord, RepositoryRecord, WorkspaceRecord,
-    WorkspaceScanProgress,
+    load_cached_workspace_model, scan_workspace_controlled, scan_workspace_repository,
+    scan_workspace_repository_controlled, update_managed_repository, workspace_root,
+    AnalysisRecord, RepositoryRecord, WorkspaceRecord, WorkspaceScanProgress,
 };
 use serde::Serialize;
 use std::collections::{BTreeMap, VecDeque};
@@ -23,6 +25,37 @@ use std::sync::{Arc, Mutex};
 use tauri::{Emitter, Manager};
 
 const DESKTOP_MODEL_CACHE_LIMIT: usize = 6;
+
+#[tauri::command]
+async fn analyze_source_command(
+    source: String,
+) -> Result<focused_analysis::FocusedRepositoryAnalysis, String> {
+    let source = source.trim().to_string();
+    if source.is_empty() {
+        return Err("Select a local project or enter a GitHub repository URL".to_string());
+    }
+
+    tauri::async_runtime::spawn_blocking(move || {
+        let repository = if source.starts_with("https://github.com/")
+            || source.starts_with("http://github.com/")
+        {
+            clone_repository("default", &source)
+        } else {
+            let path = Path::new(&source);
+            if !path.is_dir() {
+                return Err("The selected project folder does not exist".to_string());
+            }
+            add_repository("default", path)
+        }
+        .map_err(|error| error.to_string())?;
+
+        let workspace = scan_workspace_repository("default", &repository.id)
+            .map_err(|error| error.to_string())?;
+        focused_analysis::from_workspace(workspace, &repository.id)
+    })
+    .await
+    .map_err(|error| error.to_string())?
+}
 
 #[derive(Default)]
 struct DesktopModelCache {
@@ -1296,6 +1329,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            analyze_source_command,
             verify_capsule_command,
             detect_runtime_command,
             list_workspaces_command,

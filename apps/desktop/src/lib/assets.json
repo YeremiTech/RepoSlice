@@ -1,0 +1,1058 @@
+{
+  "technologies": [
+    {
+      "slug": "c",
+      "category": "languages",
+      "path": "technologies/languages/c.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "cpp",
+      "category": "languages",
+      "path": "technologies/languages/cpp.png",
+      "aliases": [
+        "C++"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "csharp",
+      "category": "languages",
+      "path": "technologies/languages/csharp.png",
+      "aliases": [
+        "C#"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "dart",
+      "category": "languages",
+      "path": "technologies/languages/dart.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "elixir",
+      "category": "languages",
+      "path": "technologies/languages/elixir.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "go",
+      "category": "languages",
+      "path": "technologies/languages/go.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "java",
+      "category": "languages",
+      "path": "technologies/languages/java.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "javascript",
+      "category": "languages",
+      "path": "technologies/languages/javascript.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "kotlin",
+      "category": "languages",
+      "path": "technologies/languages/kotlin.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "php",
+      "category": "languages",
+      "path": "technologies/languages/php.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "python",
+      "category": "languages",
+      "path": "technologies/languages/python.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "ruby",
+      "category": "languages",
+      "path": "technologies/languages/ruby.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "rust",
+      "category": "languages",
+      "path": "technologies/languages/rust.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "scala",
+      "category": "languages",
+      "path": "technologies/languages/scala.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "shell",
+      "category": "languages",
+      "path": "technologies/languages/shell.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "sql",
+      "category": "languages",
+      "path": "technologies/languages/sql.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "swift",
+      "category": "languages",
+      "path": "technologies/languages/swift.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "typescript",
+      "category": "languages",
+      "path": "technologies/languages/typescript.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "angular",
+      "category": "frameworks",
+      "path": "technologies/frameworks/angular.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "aspnet",
+      "category": "frameworks",
+      "path": "technologies/frameworks/aspnet.png",
+      "aliases": [
+        "ASP.NET",
+        "ASP.NET Core"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "astro",
+      "category": "frameworks",
+      "path": "technologies/frameworks/astro.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "blazor",
+      "category": "frameworks",
+      "path": "technologies/frameworks/blazor.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "django",
+      "category": "frameworks",
+      "path": "technologies/frameworks/django.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "express",
+      "category": "frameworks",
+      "path": "technologies/frameworks/express.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "fastapi",
+      "category": "frameworks",
+      "path": "technologies/frameworks/fastapi.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "fastify",
+      "category": "frameworks",
+      "path": "technologies/frameworks/fastify.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "flask",
+      "category": "frameworks",
+      "path": "technologies/frameworks/flask.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "ktor",
+      "category": "frameworks",
+      "path": "technologies/frameworks/ktor.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "laravel",
+      "category": "frameworks",
+      "path": "technologies/frameworks/laravel.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "micronaut",
+      "category": "frameworks",
+      "path": "technologies/frameworks/micronaut.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "nestjs",
+      "category": "frameworks",
+      "path": "technologies/frameworks/nestjs.png",
+      "aliases": [
+        "Nest.js"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "nextjs",
+      "category": "frameworks",
+      "path": "technologies/frameworks/nextjs.png",
+      "aliases": [
+        "Next.js"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "nuxt",
+      "category": "frameworks",
+      "path": "technologies/frameworks/nuxt.png",
+      "aliases": [
+        "Nuxt.js"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "phoenix",
+      "category": "frameworks",
+      "path": "technologies/frameworks/phoenix.png",
+      "aliases": [
+        "Phoenix Framework"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "quarkus",
+      "category": "frameworks",
+      "path": "technologies/frameworks/quarkus.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "rails",
+      "category": "frameworks",
+      "path": "technologies/frameworks/rails.png",
+      "aliases": [
+        "Ruby on Rails"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "react",
+      "category": "frameworks",
+      "path": "technologies/frameworks/react.png",
+      "aliases": [
+        "reactjs"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "spring-boot",
+      "category": "frameworks",
+      "path": "technologies/frameworks/spring-boot.png",
+      "aliases": [
+        "Spring",
+        "Spring Boot",
+        "org.springframework.boot"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "svelte",
+      "category": "frameworks",
+      "path": "technologies/frameworks/svelte.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "sveltekit",
+      "category": "frameworks",
+      "path": "technologies/frameworks/sveltekit.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "symfony",
+      "category": "frameworks",
+      "path": "technologies/frameworks/symfony.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "vue",
+      "category": "frameworks",
+      "path": "technologies/frameworks/vue.png",
+      "aliases": [
+        "Vue.js"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "cassandra",
+      "category": "databases",
+      "path": "technologies/databases/cassandra.png",
+      "aliases": [
+        "Apache Cassandra"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "elasticsearch",
+      "category": "databases",
+      "path": "technologies/databases/elasticsearch.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "firebase",
+      "category": "databases",
+      "path": "technologies/databases/firebase.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "mariadb",
+      "category": "databases",
+      "path": "technologies/databases/mariadb.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "mongodb",
+      "category": "databases",
+      "path": "technologies/databases/mongodb.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "mysql",
+      "category": "databases",
+      "path": "technologies/databases/mysql.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "oracle-database",
+      "category": "databases",
+      "path": "technologies/databases/oracle-database.png",
+      "aliases": [
+        "Oracle"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "postgresql",
+      "category": "databases",
+      "path": "technologies/databases/postgresql.png",
+      "aliases": [
+        "postgres",
+        "org.postgresql"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "redis",
+      "category": "databases",
+      "path": "technologies/databases/redis.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "sql-server",
+      "category": "databases",
+      "path": "technologies/databases/sql-server.png",
+      "aliases": [
+        "Microsoft SQL Server",
+        "SQL Server"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "sqlite",
+      "category": "databases",
+      "path": "technologies/databases/sqlite.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "doctrine",
+      "category": "orm",
+      "path": "technologies/orm/doctrine.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "eloquent",
+      "category": "orm",
+      "path": "technologies/orm/eloquent.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "entity-framework",
+      "category": "orm",
+      "path": "technologies/orm/entity-framework.png",
+      "aliases": [
+        "Entity Framework Core"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "hibernate",
+      "category": "orm",
+      "path": "technologies/orm/hibernate.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "jpa",
+      "category": "orm",
+      "path": "technologies/orm/jpa.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "prisma",
+      "category": "orm",
+      "path": "technologies/orm/prisma.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "sequelize",
+      "category": "orm",
+      "path": "technologies/orm/sequelize.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "typeorm",
+      "category": "orm",
+      "path": "technologies/orm/typeorm.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "cargo",
+      "category": "tooling",
+      "path": "technologies/tooling/cargo.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "composer",
+      "category": "tooling",
+      "path": "technologies/tooling/composer.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "docker",
+      "category": "tooling",
+      "path": "technologies/tooling/docker.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "git",
+      "category": "tooling",
+      "path": "technologies/tooling/git.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "gradle",
+      "category": "tooling",
+      "path": "technologies/tooling/gradle.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "maven",
+      "category": "tooling",
+      "path": "technologies/tooling/maven.png",
+      "aliases": [
+        "Apache Maven"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "npm",
+      "category": "tooling",
+      "path": "technologies/tooling/npm.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "parcel",
+      "category": "tooling",
+      "path": "technologies/tooling/parcel.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "pip",
+      "category": "tooling",
+      "path": "technologies/tooling/pip.png",
+      "aliases": [
+        "PyPI"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "pnpm",
+      "category": "tooling",
+      "path": "technologies/tooling/pnpm.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "poetry",
+      "category": "tooling",
+      "path": "technologies/tooling/poetry.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "rollup",
+      "category": "tooling",
+      "path": "technologies/tooling/rollup.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "vite",
+      "category": "tooling",
+      "path": "technologies/tooling/vite.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "webpack",
+      "category": "tooling",
+      "path": "technologies/tooling/webpack.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "yarn",
+      "category": "tooling",
+      "path": "technologies/tooling/yarn.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "dotnet",
+      "category": "runtime",
+      "path": "technologies/runtime/dotnet.png",
+      "aliases": [
+        ".NET"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "electron",
+      "category": "runtime",
+      "path": "technologies/runtime/electron.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "flutter",
+      "category": "runtime",
+      "path": "technologies/runtime/flutter.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "java",
+      "category": "runtime",
+      "path": "technologies/runtime/java.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "nodejs",
+      "category": "runtime",
+      "path": "technologies/runtime/nodejs.png",
+      "aliases": [
+        "Node.js",
+        "node",
+        "NodeJS"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "qt",
+      "category": "runtime",
+      "path": "technologies/runtime/qt.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "tauri",
+      "category": "runtime",
+      "path": "technologies/runtime/tauri.png",
+      "aliases": [],
+      "specific": true
+    },
+    {
+      "slug": "deno",
+      "category": "runtime",
+      "path": "fallback/runtime.png",
+      "aliases": [
+        "Deno"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "bun",
+      "category": "runtime",
+      "path": "fallback/runtime.png",
+      "aliases": [
+        "Bun"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "erlang",
+      "category": "runtime",
+      "path": "fallback/runtime.png",
+      "aliases": [
+        "Erlang"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "lua",
+      "category": "runtime",
+      "path": "fallback/runtime.png",
+      "aliases": [
+        "Lua"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "perl",
+      "category": "runtime",
+      "path": "fallback/runtime.png",
+      "aliases": [
+        "Perl"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "julia",
+      "category": "runtime",
+      "path": "fallback/runtime.png",
+      "aliases": [
+        "Julia"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "mix",
+      "category": "runtime",
+      "path": "fallback/runtime.png",
+      "aliases": [
+        "Mix"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "html5",
+      "category": "languages",
+      "path": "fallback/language.png",
+      "aliases": [
+        "HTML5"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "css",
+      "category": "languages",
+      "path": "fallback/language.png",
+      "aliases": [
+        "CSS"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "haskell",
+      "category": "languages",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Haskell"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "clojure",
+      "category": "languages",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Clojure"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "zig",
+      "category": "languages",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Zig"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "solidity",
+      "category": "languages",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Solidity"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "remix",
+      "category": "frameworks",
+      "path": "fallback/framework.png",
+      "aliases": [
+        "Remix"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "solid",
+      "category": "frameworks",
+      "path": "fallback/framework.png",
+      "aliases": [
+        "SolidJS"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "qwik",
+      "category": "frameworks",
+      "path": "fallback/framework.png",
+      "aliases": [
+        "Qwik"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "alpinedotjs",
+      "category": "frameworks",
+      "path": "fallback/framework.png",
+      "aliases": [
+        "Alpine.js"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "tailwindcss",
+      "category": "frameworks",
+      "path": "fallback/framework.png",
+      "aliases": [
+        "Tailwind CSS"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "bootstrap",
+      "category": "frameworks",
+      "path": "fallback/framework.png",
+      "aliases": [
+        "Bootstrap"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "mui",
+      "category": "frameworks",
+      "path": "fallback/framework.png",
+      "aliases": [
+        "Material UI"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "sass",
+      "category": "frameworks",
+      "path": "fallback/framework.png",
+      "aliases": [
+        "Sass"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "less",
+      "category": "frameworks",
+      "path": "fallback/framework.png",
+      "aliases": [
+        "Less"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "hono",
+      "category": "frameworks",
+      "path": "fallback/framework.png",
+      "aliases": [
+        "Hono"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "couchdb",
+      "category": "databases",
+      "path": "fallback/database.png",
+      "aliases": [
+        "Apache CouchDB"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "neo4j",
+      "category": "databases",
+      "path": "fallback/database.png",
+      "aliases": [
+        "Neo4j"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "supabase",
+      "category": "databases",
+      "path": "fallback/database.png",
+      "aliases": [
+        "Supabase"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "h2-database",
+      "category": "databases",
+      "path": "fallback/database.png",
+      "aliases": [
+        "H2 Database"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "azure-sql-database",
+      "category": "languages",
+      "path": "fallback/language.png",
+      "aliases": [
+        "SQL Database"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "xml",
+      "category": "languages",
+      "path": "fallback/language.png",
+      "aliases": [
+        "XML"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "babel",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Babel"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "esbuild",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "esbuild"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "swc",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "SWC"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "turborepo",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Turborepo"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "nx",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Nx"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "grunt",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Grunt"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "gulp",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Gulp"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "kubernetes",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Kubernetes"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "github",
+      "category": "tooling",
+      "path": "actions/github-logo.png",
+      "aliases": [
+        "GitHub"
+      ],
+      "specific": true
+    },
+    {
+      "slug": "gitlab",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "GitLab"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "jenkins",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Jenkins"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "terraform",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Terraform"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "ansible",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Ansible"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "nginx",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Nginx"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "apache",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Apache"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "linux",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Linux"
+      ],
+      "specific": false
+    },
+    {
+      "slug": "ubuntu",
+      "category": "tooling",
+      "path": "fallback/language.png",
+      "aliases": [
+        "Ubuntu"
+      ],
+      "specific": false
+    }
+  ],
+  "icons": {
+    "Dashboard": "navigation/summary",
+    "Stack": "navigation/technologies",
+    "Api": "navigation/endpoints",
+    "Folder": "actions/folder",
+    "Scan": "actions/analyze",
+    "Code": "fallback/language",
+    "Link": "status/link",
+    "Server": "fallback/runtime",
+    "Globe": "fallback/framework",
+    "Database": "fallback/database"
+  }
+}

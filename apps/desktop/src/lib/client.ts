@@ -7,7 +7,12 @@ import type {
   WorkspaceRecord,
   RepositoryRecord,
   WorkspaceModel,
+  FocusedRepositoryAnalysis,
 } from "../types";
+
+export function analyzeSource(source: string): Promise<FocusedRepositoryAnalysis> {
+  return invoke("analyze_source_command", { source });
+}
 
 export function listWorkspaces(): Promise<WorkspaceRecord[]> { return invoke("list_workspaces_command"); }
 export function createWorkspace(name: string): Promise<WorkspaceRecord> { return invoke("create_workspace_command", { name }); }
@@ -34,5 +39,4 @@ export function verifyCapsule(path: string): Promise<VerificationReport> {
 export function detectRuntime(): Promise<RuntimeCapabilities> {
   return invoke<RuntimeCapabilities>("detect_runtime_command");
 }
-
 

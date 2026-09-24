@@ -8,13 +8,12 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
 const src = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 
-test('product shell keeps progress and notifications outside normal view flow', () => {
+test('focused analysis exposes status and recoverable errors in the active view', () => {
   const app = src('src/App.tsx');
-  const css = src('src/styles/product-shell.css');
-  assert.match(app, /analysis-progress-layer/);
-  assert.match(app, /floating-alert/);
-  assert.match(css, /\.analysis-progress-layer\s*\{[\s\S]*position:\s*fixed/);
-  assert.match(css, /\.floating-alert[\s\S]*position:\s*fixed/);
+  const css = src('src/styles/index.css');
+  assert.match(app, /analysis-status/);
+  assert.match(app, /role="alert"/);
+  assert.match(css, /analysis-status/);
 });
 
 test('long analysis screens are split into focused tab surfaces', () => {
@@ -39,16 +38,13 @@ test('dense explorers paginate instead of mounting thousands of rows at once', (
   }
 });
 
-test('desktop sidebar stays fixed and keeps all primary view ids', () => {
-  const sidebar = src('src/components/Sidebar.tsx');
+test('desktop navigation keeps the three primary views in a fixed sidebar', () => {
   const app = src('src/App.tsx');
-  const css = src('src/styles/product-shell.css');
-  assert.doesNotMatch(sidebar, /onToggle|collapsed\?/);
-  assert.match(app, /<div className="app-shell"><Sidebar view=\{view\} engineState=\{engineState\} onChange=\{setView\}/);
-  assert.match(css, /grid-template-columns:\s*var\(--shell-sidebar\) minmax\(0, 1fr\)/);
-  for (const view of ['overview', 'projects', 'architecture', 'audit', 'components', 'entrypoints', 'dependencies', 'capsules']) {
-    assert.match(sidebar, new RegExp(`id:\\s*"${view}"`));
-  }
+  const css = src('src/styles/index.css');
+  assert.match(app, /className="app-shell"/);
+  assert.match(app, /sidebar-nav/);
+  assert.match(css, /grid-template-columns:\s*var\(--sidebar\)/);
+  for (const view of ['Resumen', 'Tecnologías', 'Endpoints']) assert.ok(app.includes(view));
 });
 
 test('section header keeps module headers compact without decorative subtitles', () => {
@@ -57,15 +53,13 @@ test('section header keeps module headers compact without decorative subtitles',
   assert.doesNotMatch(header, /<p>/);
 });
 
-test('scope toolbar is compact and only dependencies exposes direct target selection', () => {
+test('source controls stay in the application shell across all views', () => {
   const app = src('src/App.tsx');
-  const toolbar = src('src/components/ProjectToolbar.tsx');
-  const css = src('src/styles/product-calibration-v3.css');
-  assert.match(app, /showTarget=\{view === "dependencies"\}/);
-  assert.match(toolbar, /scope-toolbar--compact/);
-  assert.match(toolbar, /scope-toolbar--target/);
-  assert.match(css, /\.project-toolbar\.scope-toolbar--compact/);
-  assert.match(css, /height:\s*34px/);
+  assert.match(app, /source-toolbar/);
+  assert.match(app, /Local/);
+  assert.match(app, /GitHub/);
+  assert.match(app, /Analizar/);
+  assert.match(app, /view-container/);
 });
 
 test('components and entrypoints share one reusable explorer command bar', () => {

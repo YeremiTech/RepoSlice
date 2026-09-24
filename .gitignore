@@ -6,8 +6,11 @@ apps/desktop/src-tauri/target/
 node_modules/
 dist/
 coverage/
+test-results/
+playwright-report/
 .vite/
 *.tsbuildinfo
+.work/
 
 # RepoSlice runtime data
 .reposlice/
