@@ -1,0 +1,23 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/reposlice-core",
+    "crates/reposlice-workspace",
+    "crates/reposlice-scanner",
+    "crates/reposlice-model",
+    "crates/reposlice-graph",
+    "crates/reposlice-capsule",
+    "crates/reposlice-verifier",
+    "crates/reposlice-runtime",
+    "crates/reposlice-cli",
+    "crates/reposlice-sdk",
+    "crates/reposlice-mcp",
+    "parsers/reposlice-parser-java",
+    "parsers/reposlice-parser-typescript",
+    "parsers/reposlice-parser-php",
+    "parsers/reposlice-parser-polyglot",
+    "adapters/reposlice-adapter-spring",
+    "adapters/reposlice-adapter-laravel",
+    "adapters/reposlice-adapter-web"
+]
+exclude = ["apps/desktop/src-tauri"]

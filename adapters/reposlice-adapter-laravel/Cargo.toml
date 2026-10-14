@@ -1,0 +1,9 @@
+[package]
+name = "reposlice-adapter-laravel"
+version = "0.4.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+reposlice-core = { path = "../../crates/reposlice-core" }
+reposlice-parser-php = { path = "../../parsers/reposlice-parser-php" }

@@ -1,0 +1,17 @@
+[package]
+name = "reposlice-sdk"
+version = "0.4.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+reposlice-core = { path = "../reposlice-core" }
+reposlice-scanner = { path = "../reposlice-scanner" }
+reposlice-graph = { path = "../reposlice-graph" }
+reposlice-capsule = { path = "../reposlice-capsule" }
+reposlice-verifier = { path = "../reposlice-verifier" }
+reposlice-runtime = { path = "../reposlice-runtime" }
+reposlice-workspace = { path = "../reposlice-workspace" }
+
+
+serde_json = "1"

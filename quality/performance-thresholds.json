@@ -1,0 +1,6 @@
+{
+  "warmRegressionBudget": 1.25,
+  "minimumFiles": 1,
+  "minimumModelBytes": 64,
+  "maximumDiagnosticsPerFile": 5.0
+}

@@ -1,0 +1,13 @@
+[package]
+name = "reposlice-workspace"
+version = "0.4.0"
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+reposlice-core = { path = "../reposlice-core" }
+reposlice-scanner = { path = "../reposlice-scanner" }
+reposlice-graph = { path = "../reposlice-graph" }
+anyhow = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

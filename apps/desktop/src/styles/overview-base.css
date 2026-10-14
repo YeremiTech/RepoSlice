@@ -1,0 +1,995 @@
+/* ========================================================================== */
+/* OVERVIEW — FINAL VIVID NEON                                                */
+/* Replica visual de la referencia. No modifica lógica ni datos.              */
+/* ========================================================================== */
+
+:root {
+  --bg: #02050d;
+  --bg-soft: #050a14;
+  --panel: #07111f;
+  --panel-strong: #0a1526;
+  --panel-hover: #0d1b31;
+  --border: #193452;
+  --border-soft: #122842;
+  --text: #f7f9ff;
+  --text-soft: #c8d4e8;
+  --text-muted: #7288a8;
+
+  /* Paleta neón global: usar estas variables en cualquier vista nueva. */
+  --neon-violet: #a85cff;
+  --neon-violet-strong: #7938ff;
+  --neon-cyan: #28d9ff;
+  --neon-green: #38ed9b;
+  --neon-emerald: #21e7ca;
+  --neon-amber: #ffbe35;
+  --neon-orange: #ff7845;
+  --neon-red: #ff5964;
+  --neon-pink: #ff4fc4;
+  --neon-blue: #39a7ff;
+  --neon-slate: #9aafd0;
+
+  --neon-violet-rgb: 168, 92, 255;
+  --neon-cyan-rgb: 40, 217, 255;
+  --neon-green-rgb: 56, 237, 155;
+  --neon-emerald-rgb: 33, 231, 202;
+  --neon-amber-rgb: 255, 190, 53;
+
+  /* Alias compatibles con las vistas existentes. */
+  --violet: var(--neon-violet);
+  --violet-strong: var(--neon-violet-strong);
+  --cyan: var(--neon-cyan);
+  --green: var(--neon-green);
+  --amber: var(--neon-amber);
+  --orange: var(--neon-orange);
+  --red: var(--neon-red);
+  --pink: var(--neon-pink);
+  --blue: var(--neon-blue);
+  --emerald: var(--neon-emerald);
+  --slate: var(--neon-slate);
+
+  --neon-cyan-glow: rgba(var(--neon-cyan-rgb), 0.34);
+  --neon-violet-glow: rgba(var(--neon-violet-rgb), 0.36);
+  --neon-green-glow: rgba(var(--neon-green-rgb), 0.30);
+  --neon-amber-glow: rgba(var(--neon-amber-rgb), 0.30);
+  --shadow: 0 22px 55px rgba(0, 0, 0, 0.36);
+}
+
+body {
+  color: var(--text);
+  background:
+    radial-gradient(circle at 28% -10%, rgba(35, 115, 255, 0.10), transparent 25%),
+    radial-gradient(circle at 57% -9%, rgba(120, 58, 255, 0.16), transparent 28%),
+    radial-gradient(circle at 82% 26%, rgba(19, 205, 255, 0.075), transparent 23%),
+    linear-gradient(180deg, #02050d 0%, #020611 48%, #02050c 100%);
+}
+
+.app-shell {
+  grid-template-columns: 242px minmax(0, 1fr);
+}
+
+.sidebar {
+  padding: 23px 13px 16px;
+  background:
+    radial-gradient(circle at 10% 4%, rgba(95, 55, 255, 0.06), transparent 27%),
+    linear-gradient(180deg, rgba(5, 10, 20, 0.995), rgba(2, 7, 15, 0.998));
+  border-right: 1px solid rgba(101, 130, 180, 0.28);
+  box-shadow: 15px 0 45px rgba(0, 0, 0, 0.16);
+}
+
+.brand {
+  padding-bottom: 27px;
+}
+
+.brand-logo {
+  height: 70px;
+}
+
+.nav-label {
+  margin-top: 10px;
+  margin-bottom: 7px;
+  color: #b9c4d6;
+  font-size: 11px;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+
+.sidebar-nav {
+  gap: 12px;
+}
+
+.nav-group {
+  gap: 7px;
+}
+
+.nav-button {
+  min-height: 48px;
+  height: 48px;
+  gap: 14px;
+  padding: 0 14px;
+  border-radius: 10px;
+  color: #f0f3fa;
+  font-size: 16px;
+}
+
+.nav-button svg {
+  width: 22px;
+  height: 22px;
+}
+
+.nav-button:hover {
+  color: white;
+  border-color: rgba(68, 110, 173, 0.22);
+  background: linear-gradient(90deg, rgba(20, 39, 69, 0.50), rgba(8, 17, 31, 0.10));
+}
+
+.nav-button.active {
+  color: #ffffff;
+  background:
+    radial-gradient(circle at 20% 40%, rgba(105, 62, 255, 0.25), transparent 60%),
+    linear-gradient(90deg, rgba(65, 40, 147, 0.45), rgba(18, 18, 57, 0.46));
+  border-color: rgba(164, 91, 255, 0.83);
+  box-shadow:
+    inset 0 0 0 1px rgba(185, 125, 255, 0.09),
+    0 0 22px rgba(130, 57, 255, 0.13);
+}
+
+.nav-button.active svg {
+  color: #aa74ff;
+  filter: drop-shadow(0 0 7px rgba(146, 85, 255, 0.72));
+}
+
+.sidebar-status {
+  min-height: 72px;
+  padding: 13px 14px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(7, 28, 29, 0.92), rgba(4, 18, 21, 0.95));
+  border-color: rgba(0, 238, 192, 0.24);
+  box-shadow: inset 0 0 22px rgba(0, 238, 192, 0.025);
+}
+
+.sidebar-status strong {
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.sidebar-status span {
+  color: #f0f4ff;
+  font-size: 12px;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  background: #21ff93;
+  box-shadow: 0 0 18px rgba(33, 255, 147, 0.9);
+}
+
+.sidebar-version {
+  padding-top: 18px;
+  color: #c6cfde;
+  font-size: 12px;
+}
+
+.main-content {
+  max-width: none;
+  padding: 23px 28px 28px;
+}
+
+.button {
+  min-height: 48px;
+  padding: 0 17px;
+  border-radius: 10px;
+  border-color: rgba(52, 75, 111, 0.62);
+  background: linear-gradient(180deg, rgba(5, 12, 22, 0.98), rgba(4, 9, 17, 0.99));
+  color: #ffffff;
+  font-size: 14px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.018);
+}
+
+.button:hover:not(:disabled) {
+  border-color: rgba(66, 130, 215, 0.64);
+  background: #071323;
+  box-shadow: 0 0 15px rgba(33, 150, 255, 0.08);
+}
+
+.button.primary {
+  color: #ffffff;
+  background: linear-gradient(180deg, #8e47ff 0%, #6f29ed 100%);
+  border-color: rgba(168, 88, 255, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.17),
+    0 0 26px rgba(139, 52, 255, 0.33);
+}
+
+.project-toolbar {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.15fr) minmax(170px, 0.65fr) minmax(330px, 1.35fr) minmax(150px, 0.55fr);
+  gap: 12px 16px;
+  align-items: end;
+  padding: 16px 17px 12px;
+  margin-bottom: 16px;
+  border-radius: 13px;
+  border: 1px solid rgba(43, 73, 112, 0.62);
+  background:
+    radial-gradient(circle at 57% 0%, rgba(118, 61, 255, 0.055), transparent 48%),
+    linear-gradient(180deg, rgba(7, 15, 28, 0.99), rgba(5, 12, 23, 0.995));
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.012),
+    0 16px 40px rgba(0,0,0,0.22);
+}
+
+/* Orden visual esperado: workspace, repository, project unit, target / analizar. */
+.project-toolbar > :nth-child(1) { grid-column: 1; grid-row: 1; }
+.project-toolbar > :nth-child(2) { grid-column: 2; grid-row: 1; }
+.project-toolbar > :nth-child(3) { grid-column: 3; grid-row: 1; }
+.project-toolbar > .scan-button { grid-column: 1 / -1; grid-row: 2; }
+.project-toolbar > .toolbar-field:last-child { grid-column: 4; grid-row: 1; }
+
+.field-label {
+  padding-left: 3px;
+  color: #d5dceb;
+  font-size: 11px;
+  font-weight: 520;
+  letter-spacing: 0;
+}
+
+.toolbar-field select {
+  height: 46px;
+  padding-left: 14px;
+  border-radius: 9px;
+  border-color: rgba(40, 66, 102, 0.72);
+  background: linear-gradient(180deg, rgba(5, 13, 24, 1), rgba(3, 9, 17, 1));
+  color: #ffffff;
+  font-size: 15px;
+}
+
+.toolbar-field select option,
+.toolbar-field select optgroup {
+  background: #050d18;
+  color: #ffffff;
+}
+
+.toolbar-field select:focus {
+  border-color: rgba(146, 85, 255, 0.78);
+  box-shadow: 0 0 0 3px rgba(146,85,255,0.11), 0 0 18px rgba(146,85,255,0.08);
+}
+
+.scan-button {
+  width: 100%;
+  height: 50px;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 720;
+  background:
+    radial-gradient(circle at 30% 0%, rgba(137, 75, 255, 0.45), transparent 45%),
+    linear-gradient(90deg, #4720ad 0%, #6c28e3 45%, #381783 100%);
+  border-color: rgba(134, 74, 255, 0.74);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    0 0 27px rgba(116, 49, 255, 0.22);
+}
+
+.view-container,
+.view-stack {
+  gap: 16px;
+}
+
+.overview-view {
+  width: 100%;
+}
+
+.overview-view .section-header p,
+.overview-view .metric-hint,
+.overview-view .technology-copy span,
+.overview-view .count-badge,
+.overview-view .overview-support-copy {
+  display: none;
+}
+
+.metrics-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.metric-card {
+  min-height: 120px;
+  padding: 0;
+  border-radius: 13px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(6, 14, 26, 0.99), rgba(3, 9, 18, 0.995));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.012), 0 13px 32px rgba(0,0,0,0.22);
+}
+
+.metric-card-content {
+  position: relative;
+  z-index: 2;
+  min-height: 120px;
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+}
+
+.metric-icon-shell {
+  width: 66px;
+  height: 66px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.018);
+}
+
+.metric-copy {
+  display: grid;
+  gap: 8px;
+  align-content: center;
+}
+
+.metric-label {
+  color: #f2f5fb;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.metric-card strong {
+  margin: 0;
+  color: #ffffff;
+  font-size: 33px;
+  font-weight: 780;
+  line-height: 0.95;
+}
+
+.metric-glow {
+  top: -38px;
+  right: -18px;
+  width: 160px;
+  height: 160px;
+  opacity: 0.19;
+  filter: blur(27px);
+}
+
+.metric-card.tone-cyan {
+  border-color: rgba(20, 157, 235, 0.74);
+  background:
+    radial-gradient(circle at 22% 43%, rgba(25, 162, 255, 0.10), transparent 45%),
+    linear-gradient(180deg, rgba(5, 20, 34, 0.99), rgba(3, 10, 20, 0.995));
+  box-shadow: inset 0 0 0 1px rgba(34,207,255,0.035), 0 0 24px rgba(34,207,255,0.055);
+}
+.metric-card.tone-cyan .metric-icon-shell {
+  color: #34d9ff;
+  border: 1px solid rgba(31, 175, 255, 0.76);
+  background: linear-gradient(180deg, rgba(0, 130, 226, 0.20), rgba(0, 70, 145, 0.16));
+  box-shadow: inset 0 0 20px rgba(34,207,255,0.09), 0 0 20px var(--neon-cyan-glow);
+}
+.metric-card.tone-cyan .metric-glow { background: #22cfff; }
+
+.metric-card.tone-violet {
+  border-color: rgba(128, 71, 255, 0.76);
+  background:
+    radial-gradient(circle at 23% 43%, rgba(117, 55, 255, 0.13), transparent 45%),
+    linear-gradient(180deg, rgba(12, 12, 36, 0.99), rgba(6, 8, 24, 0.995));
+  box-shadow: inset 0 0 0 1px rgba(146,85,255,0.04), 0 0 25px rgba(146,85,255,0.06);
+}
+.metric-card.tone-violet .metric-icon-shell {
+  color: #b17cff;
+  border: 1px solid rgba(139, 74, 255, 0.80);
+  background: linear-gradient(180deg, rgba(107, 45, 226, 0.25), rgba(55, 20, 126, 0.22));
+  box-shadow: inset 0 0 22px rgba(146,85,255,0.12), 0 0 22px var(--neon-violet-glow);
+}
+.metric-card.tone-violet .metric-glow { background: #9255ff; }
+
+.metric-card.tone-green {
+  border-color: rgba(0, 190, 163, 0.62);
+  background:
+    radial-gradient(circle at 23% 43%, rgba(0, 225, 190, 0.11), transparent 45%),
+    linear-gradient(180deg, rgba(3, 24, 29, 0.99), rgba(3, 11, 20, 0.995));
+  box-shadow: inset 0 0 0 1px rgba(0,238,192,0.035), 0 0 24px rgba(0,238,192,0.045);
+}
+.metric-card.tone-green .metric-icon-shell {
+  color: #13f4d0;
+  border: 1px solid rgba(0, 213, 188, 0.69);
+  background: linear-gradient(180deg, rgba(0, 132, 118, 0.20), rgba(0, 70, 70, 0.17));
+  box-shadow: inset 0 0 22px rgba(0,238,192,0.10), 0 0 20px var(--neon-green-glow);
+}
+.metric-card.tone-green .metric-glow { background: #00eec0; }
+
+.metric-card.tone-amber {
+  border-color: rgba(185, 104, 0, 0.74);
+  background:
+    radial-gradient(circle at 23% 43%, rgba(255, 159, 0, 0.11), transparent 45%),
+    linear-gradient(180deg, rgba(26, 18, 6, 0.99), rgba(10, 10, 13, 0.995));
+  box-shadow: inset 0 0 0 1px rgba(255,176,32,0.035), 0 0 24px rgba(255,176,32,0.045);
+}
+.metric-card.tone-amber .metric-icon-shell {
+  color: #ffbd27;
+  border: 1px solid rgba(205, 116, 0, 0.82);
+  background: linear-gradient(180deg, rgba(156, 84, 0, 0.24), rgba(77, 42, 0, 0.19));
+  box-shadow: inset 0 0 22px rgba(255,176,32,0.10), 0 0 20px var(--neon-amber-glow);
+}
+.metric-card.tone-amber .metric-glow { background: #ffb020; }
+
+.overview-columns,
+.overview-secondary-columns {
+  grid-template-columns: minmax(370px, 1fr) minmax(650px, 2.08fr);
+  gap: 16px;
+}
+
+.panel {
+  border-radius: 13px;
+  border: 1px solid rgba(41, 69, 107, 0.64);
+  background:
+    radial-gradient(circle at 72% 0%, rgba(59, 93, 167, 0.025), transparent 40%),
+    linear-gradient(180deg, rgba(6, 14, 27, 0.99), rgba(3, 9, 18, 0.995));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.01), 0 16px 38px rgba(0,0,0,0.22);
+}
+
+.section-header {
+  min-height: 54px;
+  padding: 14px 18px 7px;
+  border-bottom: 0;
+  background: transparent;
+}
+
+.section-header h2 {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 720;
+  letter-spacing: -0.02em;
+}
+
+.compatibility-content {
+  min-height: 125px;
+  gap: 24px;
+  padding: 10px 22px 6px;
+}
+
+.compatibility-ring {
+  width: 94px;
+  height: 94px;
+  background:
+    radial-gradient(circle, #09111f 58%, transparent 60%),
+    conic-gradient(#9f5bff 0 64%, #28345b 64% 100%);
+  box-shadow: 0 0 26px rgba(146,85,255,0.22);
+}
+
+.compatibility-ring::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 22px rgba(123, 71, 255, 0.08);
+}
+
+.compatibility-ring span {
+  color: #ffffff;
+  font-size: 29px;
+  font-weight: 730;
+}
+
+.compatibility-copy strong {
+  color: #ffffff;
+  font-size: 17px;
+}
+
+.compatibility-scale {
+  gap: 9px;
+  padding: 7px 18px 14px;
+}
+
+.scale-node {
+  height: 40px;
+  border-radius: 7px;
+  color: #9aa7bd;
+  font-size: 14px;
+  border-color: rgba(47, 71, 108, 0.61);
+  background: linear-gradient(180deg, rgba(4, 12, 23, 0.99), rgba(3, 9, 18, 0.995));
+}
+
+.scale-node.active {
+  color: #ffffff;
+  border-color: rgba(142, 68, 255, 0.86);
+  background: linear-gradient(180deg, rgba(117, 48, 244, 0.52), rgba(55, 21, 121, 0.48));
+  box-shadow: inset 0 0 18px rgba(158, 91, 255, 0.13), 0 0 15px rgba(142,68,255,0.15);
+}
+
+.technology-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 8px 14px 14px;
+  column-gap: 22px;
+  background: transparent;
+}
+
+.technology-card {
+  min-height: 57px;
+  grid-template-columns: 44px minmax(0, 1fr) minmax(150px, 0.72fr);
+  gap: 13px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(39, 66, 103, 0.38);
+}
+
+.technology-card:nth-child(odd) {
+  border-right: 0;
+}
+
+.technology-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  color: #efe7ff;
+  font-size: 14px;
+  background: linear-gradient(180deg, rgba(83, 45, 173, 0.35), rgba(36, 22, 83, 0.42));
+  border-color: rgba(126, 77, 255, 0.35);
+  box-shadow: 0 0 13px rgba(126,77,255,0.08);
+}
+
+.technology-icon .technology-brand {
+  width: 32px;
+  height: 32px;
+}
+
+.technology-icon .technology-brand-fallback,
+.technology-icon .technology-brand-icon {
+  width: 32px;
+  height: 32px;
+}
+
+.technology-copy strong {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 580;
+}
+
+.confidence {
+  gap: 7px;
+}
+
+.confidence strong {
+  color: #00f49a;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.confidence-track {
+  height: 5px;
+  background: #10223a;
+}
+
+.confidence-track span {
+  background: linear-gradient(90deg, #00df83, #28f6a7);
+  box-shadow: 0 0 10px rgba(0, 239, 143, 0.50);
+}
+
+.runtime-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 4px 16px 15px;
+  background: transparent;
+}
+
+.runtime-card {
+  min-height: 79px;
+  gap: 14px;
+  padding: 12px 16px;
+  border: 1px solid rgba(34, 59, 94, 0.57);
+  border-radius: 9px;
+  background: linear-gradient(180deg, rgba(6, 14, 26, 0.98), rgba(4, 10, 19, 0.99));
+}
+
+.runtime-brand-shell {
+  width: 43px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 43px;
+  border: 0;
+  background: transparent;
+}
+
+.runtime-brand {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.runtime-brand-fallback,
+.runtime-brand-icon {
+  grid-area: 1 / 1;
+}
+
+.runtime-brand-fallback {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 850;
+  background: transparent;
+  border: none;
+}
+
+.runtime-brand-icon {
+  position: relative;
+  z-index: 2;
+  width: 31px;
+  height: 31px;
+  object-fit: contain;
+}
+
+.runtime-brand-java .runtime-brand-fallback { color: #40d6ff; }
+.runtime-brand-node .runtime-brand-fallback { color: #31e755; }
+.runtime-brand-docker .runtime-brand-fallback { color: #ff4861; }
+.runtime-brand-python .runtime-brand-fallback { color: #ffd54a; }
+.runtime-brand-php .runtime-brand-fallback { color: #777bb4; }
+.runtime-brand-composer .runtime-brand-fallback { color: #885630; }
+.runtime-brand-go .runtime-brand-fallback { color: #00add8; }
+.runtime-brand-rust .runtime-brand-fallback { color: #dea584; }
+.runtime-brand-ruby .runtime-brand-fallback { color: #cc342d; }
+.runtime-brand-elixir .runtime-brand-fallback { color: #6e4a7e; }
+.runtime-brand-mix .runtime-brand-fallback { color: #ff8126; }
+
+.technology-brand {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+}
+
+.technology-brand-fallback,
+.technology-brand-icon {
+  grid-area: 1 / 1;
+}
+
+.technology-brand-fallback {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 8px;
+  font-weight: 850;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.technology-brand-icon {
+  position: relative;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.technology-brand.is-loaded .technology-brand-fallback {
+  opacity: 0;
+}
+
+.technology-brand.is-loaded .technology-brand-icon {
+  opacity: 1;
+}
+
+.runtime-card strong {
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 570;
+}
+
+.runtime-card span {
+  margin-top: 4px;
+  font-size: 12px;
+}
+
+.runtime-card.is-available span {
+  color: #32f078;
+  text-shadow: 0 0 8px rgba(50,240,120,0.10);
+}
+
+.runtime-card.is-missing span {
+  color: #f1f3f8;
+}
+
+.component-distribution {
+  gap: 9px 14px;
+  padding: 4px 15px 14px;
+}
+
+.compact-distribution {
+  grid-template-columns: repeat(4, minmax(130px, 1fr));
+}
+
+.distribution-card {
+  min-height: 78px;
+  padding: 11px 14px;
+  border-radius: 8px;
+  border-color: rgba(40, 68, 107, 0.62);
+  background: linear-gradient(180deg, rgba(6, 14, 26, 0.99), rgba(4, 10, 19, 0.995));
+}
+
+.distribution-head strong {
+  font-size: 25px;
+  line-height: 1;
+}
+
+.distribution-head span {
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.distribution-label {
+  margin-top: 6px;
+  color: currentColor;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.distribution-track {
+  height: 5px;
+  margin-top: auto;
+  background: #10213a;
+}
+
+.distribution-track span {
+  box-shadow: 0 0 10px currentColor;
+}
+
+.tone-blue.distribution-card { color: #20a2ff; }
+.tone-amber.distribution-card { color: #ffb012; }
+.tone-pink.distribution-card { color: #ff3cc7; }
+.tone-emerald.distribution-card { color: #0ee5be; }
+.tone-cyan.distribution-card { color: #20cfff; }
+.tone-slate.distribution-card { color: #9bb4df; }
+.tone-orange.distribution-card { color: #ff5b2b; }
+.tone-violet.distribution-card { color: #8b35ff; }
+
+@media (max-width: 1450px) {
+  .app-shell { grid-template-columns: 220px minmax(0, 1fr); }
+  .main-content { padding-left: 20px; padding-right: 20px; }
+  .project-toolbar {
+    grid-template-columns: minmax(240px, 1fr) minmax(140px, 0.58fr) minmax(270px, 1.25fr) minmax(140px, 0.55fr);
+  }
+  .overview-columns,
+  .overview-secondary-columns {
+    grid-template-columns: minmax(330px, 1fr) minmax(560px, 1.9fr);
+  }
+  .metric-card-content { grid-template-columns: 75px minmax(0,1fr); padding-left: 14px; padding-right: 14px; }
+  .metric-icon-shell { width: 58px; height: 58px; }
+  .metric-card strong { font-size: 29px; }
+}
+
+@media (max-width: 1200px) {
+  .project-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+  .project-toolbar > :nth-child(1),
+  .project-toolbar > :nth-child(2),
+  .project-toolbar > :nth-child(3),
+  .project-toolbar > .toolbar-field:last-child,
+  .project-toolbar > .scan-button {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .project-toolbar > .scan-button { grid-column: 1 / -1; }
+  .overview-columns,
+  .overview-secondary-columns { grid-template-columns: 1fr; }
+  .technology-grid { grid-template-columns: 1fr; }
+  .compact-distribution { grid-template-columns: repeat(4, minmax(110px, 1fr)); }
+}
+
+/* ========================================================================== */
+/* Runtime local — corrección de alineación y alcance por proyecto             */
+/* ========================================================================== */
+
+/*
+ * Las reglas antiguas de .runtime-card span afectaban también al contenedor
+ * del logo. Estas reglas más específicas aíslan icono y texto para que el SVG
+ * nunca se salga de su celda ni herede márgenes del texto descriptivo.
+ */
+.runtime-panel .runtime-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  padding: 5px 16px 16px;
+  background: transparent;
+}
+
+.runtime-panel .runtime-grid.runtime-count-1 {
+  grid-template-columns: 1fr;
+}
+
+.runtime-panel .runtime-grid.runtime-count-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.runtime-panel .runtime-card {
+  min-width: 0;
+  min-height: 82px;
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 14px;
+  overflow: hidden;
+  padding: 12px 16px;
+  border: 1px solid rgba(42, 73, 112, 0.68);
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 15% 50%, rgba(255, 255, 255, 0.025), transparent 34%),
+    linear-gradient(180deg, rgba(6, 15, 28, 0.99), rgba(4, 10, 19, 0.995));
+}
+
+.runtime-panel .runtime-brand-shell {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+}
+
+.runtime-panel .runtime-brand-shell .runtime-brand {
+  position: relative;
+  width: 34px !important;
+  height: 34px !important;
+  display: grid !important;
+  place-items: center;
+  margin: 0 !important;
+  padding: 0;
+}
+
+.runtime-panel .runtime-brand-shell .runtime-brand-fallback,
+.runtime-panel .runtime-brand-shell .runtime-brand-icon {
+  position: absolute;
+  inset: 0;
+  width: 34px;
+  height: 34px;
+  margin: 0 !important;
+  padding: 0;
+}
+
+.runtime-panel .runtime-brand-shell .runtime-brand-fallback {
+  z-index: 1;
+  display: grid !important;
+  place-items: center;
+  border-radius: 9px;
+  background: transparent;
+  border: none;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 850;
+}
+
+.runtime-panel .runtime-brand-shell .runtime-brand-icon {
+  z-index: 2;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.runtime-panel .runtime-card-copy {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 5px;
+}
+
+.runtime-panel .runtime-card-copy > strong,
+.runtime-panel .runtime-card-copy > span {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.runtime-panel .runtime-card-copy > strong {
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 15px;
+  line-height: 1.15;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-panel .runtime-card-copy > span {
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.runtime-panel .runtime-card.is-available .runtime-card-copy > span {
+  color: #27f47b;
+  text-shadow: 0 0 10px rgba(39, 244, 123, 0.20);
+}
+
+.runtime-panel .runtime-card.is-missing .runtime-card-copy > span {
+  color: #cbd5e5;
+  text-shadow: none;
+}
+
+.runtime-panel .runtime-java .runtime-brand-shell {
+  border-color: rgba(38, 194, 255, 0.18);
+  box-shadow: inset 0 0 18px rgba(38, 194, 255, 0.04);
+}
+
+.runtime-panel .runtime-node .runtime-brand-shell {
+  border-color: rgba(44, 238, 86, 0.18);
+  box-shadow: inset 0 0 18px rgba(44, 238, 86, 0.04);
+}
+
+.runtime-panel .runtime-docker .runtime-brand-shell {
+  border-color: rgba(36, 150, 255, 0.18);
+  box-shadow: inset 0 0 18px rgba(36, 150, 255, 0.04);
+}
+
+.runtime-panel .runtime-python .runtime-brand-shell {
+  border-color: rgba(255, 213, 74, 0.18);
+  box-shadow: inset 0 0 18px rgba(255, 213, 74, 0.04);
+}
+
+.runtime-panel .runtime-php .runtime-brand-shell {
+  border-color: rgba(119, 123, 180, 0.18);
+  box-shadow: inset 0 0 18px rgba(119, 123, 180, 0.04);
+}
+
+.runtime-panel .runtime-composer .runtime-brand-shell {
+  border-color: rgba(136, 86, 48, 0.18);
+  box-shadow: inset 0 0 18px rgba(136, 86, 48, 0.04);
+}
+
+.runtime-panel .runtime-go .runtime-brand-shell {
+  border-color: rgba(0, 173, 216, 0.18);
+  box-shadow: inset 0 0 18px rgba(0, 173, 216, 0.04);
+}
+
+.runtime-panel .runtime-rust .runtime-brand-shell {
+  border-color: rgba(222, 165, 132, 0.18);
+  box-shadow: inset 0 0 18px rgba(222, 165, 132, 0.04);
+}
+
+.runtime-panel .runtime-ruby .runtime-brand-shell {
+  border-color: rgba(204, 52, 45, 0.18);
+  box-shadow: inset 0 0 18px rgba(204, 52, 45, 0.04);
+}
+
+.runtime-panel .runtime-elixir .runtime-brand-shell {
+  border-color: rgba(110, 74, 126, 0.18);
+  box-shadow: inset 0 0 18px rgba(110, 74, 126, 0.04);
+}
+
+.runtime-panel .runtime-mix .runtime-brand-shell {
+  border-color: rgba(255, 129, 38, 0.18);
+  box-shadow: inset 0 0 18px rgba(255, 129, 38, 0.04);
+}
+
+.runtime-panel .runtime-empty {
+  grid-column: 1 / -1;
+  min-height: 82px;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  color: #7286a5;
+  font-size: 11px;
+  text-align: center;
+  border: 1px dashed rgba(42, 73, 112, 0.48);
+  border-radius: 10px;
+  background: rgba(5, 13, 24, 0.72);
+}
+
+.runtime-panel .runtime-brand.is-loaded .runtime-brand-fallback {
+  opacity: 0;
+  visibility: hidden;
+}

@@ -1,0 +1,34 @@
+angular-basic	Angular
+aspnet-basic	ASP.NET
+django-basic	Django
+express-basic	Express
+fastapi-basic	FastAPI
+go-web-basic	net/http
+laravel-basic	Laravel
+nest-basic	NestJS
+rails-basic	Rails
+react-basic	React
+rust-web-basic	Axum
+spring-basic	Spring Boot
+symfony-basic	Symfony
+empty-project	-
+malformed-project	-
+php-generic	-
+php-composer-library	-
+laravel-groups	Laravel
+laravel-resources	Laravel
+spring-multi-module	Spring Boot
+next-basic	Next.js
+vue-basic	Vue
+nuxt-basic	Nuxt
+svelte-basic	Svelte
+sveltekit-basic	Svelte,SvelteKit
+astro-basic	Astro
+fastify-basic	Fastify
+hono-basic	Hono
+flask-basic	Flask
+quarkus-basic	Quarkus
+micronaut-basic	Micronaut
+ktor-basic	Ktor
+blazor-basic	Blazor
+phoenix-basic	Phoenix

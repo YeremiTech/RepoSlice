@@ -1,0 +1,4 @@
+# case	repository	url	relative_path	runs
+spring-petclinic	spring-petclinic	https://github.com/spring-projects/spring-petclinic.git	.	5
+angular-example-app	angular-example-app	https://github.com/Ismaestro/angular-example-app.git	.	5
+fastapi-template-backend	full-stack-fastapi-template	https://github.com/fastapi/full-stack-fastapi-template.git	backend	5

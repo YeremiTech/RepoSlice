@@ -1,0 +1,345 @@
+use reposlice_core::{CrossProjectDependencyKind, EntrypointKind, WorkspaceModel};
+use serde::Serialize;
+use std::collections::HashMap;
+use std::fs;
+
+#[derive(Serialize)]
+pub struct FocusedRepositoryAnalysis {
+    pub root: String,
+    pub name: String,
+    pub project_units: Vec<FocusedProjectUnit>,
+    pub endpoint_links: Vec<FocusedEndpointLink>,
+}
+
+#[derive(Serialize)]
+pub struct FocusedProjectUnit {
+    pub id: String,
+    pub root: String,
+    pub name: String,
+    pub role: String,
+    pub files: usize,
+    pub technologies: Vec<FocusedTechnology>,
+    pub backend_endpoints: Vec<FocusedBackendEndpoint>,
+    pub frontend_calls: Vec<FocusedFrontendCall>,
+}
+
+#[derive(Serialize)]
+pub struct FocusedTechnology {
+    pub category: String,
+    pub name: String,
+    pub classification: String,
+    pub confidence: u8,
+    pub detection_kind: String,
+    pub evidence: Vec<FocusedEvidence>,
+}
+
+#[derive(Serialize)]
+pub struct FocusedEvidence {
+    pub kind: String,
+    pub source: String,
+    pub detail: String,
+    pub confidence: u8,
+}
+
+#[derive(Serialize)]
+pub struct FocusedBackendEndpoint {
+    pub id: String,
+    pub method: String,
+    pub path: String,
+    pub file: String,
+    pub creator: String,
+    pub controller: Option<String>,
+    pub action: Option<String>,
+    pub line: Option<usize>,
+}
+
+#[derive(Serialize)]
+pub struct FocusedFrontendCall {
+    pub method: String,
+    pub path: String,
+    pub component_id: String,
+    pub file: String,
+    pub symbol: Option<String>,
+    pub line: Option<usize>,
+}
+
+#[derive(Serialize)]
+pub struct FocusedEndpointLink {
+    pub consumer_project_unit_id: String,
+    pub consumer_component_id: String,
+    pub consumer_file: String,
+    pub consumer_symbol: Option<String>,
+    pub consumer_line: Option<usize>,
+    pub method: String,
+    pub path: String,
+    pub provider_project_unit_id: String,
+    pub provider_entrypoint_id: String,
+    pub provider_file: String,
+    pub confidence: u8,
+}
+
+pub fn from_workspace(
+    model: WorkspaceModel,
+    repository_id: &str,
+) -> Result<FocusedRepositoryAnalysis, String> {
+    let repository = model
+        .repositories
+        .iter()
+        .find(|repository| repository.id == repository_id)
+        .ok_or_else(|| {
+            "The analyzed repository was not returned by the analysis engine".to_string()
+        })?;
+
+    let project_units = repository
+        .project_units
+        .iter()
+        .map(|unit| {
+            let entrypoint_metadata = unit
+                .model
+                .analysis
+                .entrypoints
+                .iter()
+                .map(|metadata| (metadata.entrypoint_id.as_str(), metadata))
+                .collect::<HashMap<_, _>>();
+            let component_names = unit
+                .model
+                .components
+                .iter()
+                .map(|component| (component.id.as_str(), component.name.as_str()))
+                .collect::<HashMap<_, _>>();
+            let backend_endpoints = unit
+                .model
+                .entrypoints
+                .iter()
+                .filter(|entrypoint| entrypoint.kind == EntrypointKind::HttpEndpoint)
+                .filter_map(|entrypoint| {
+                    let (method, path) = entrypoint.name.split_once(' ')?;
+                    let metadata = entrypoint_metadata.get(entrypoint.id.as_str()).copied();
+                    let controller = metadata.and_then(|item| item.controller.clone());
+                    let action = metadata.and_then(|item| item.action.clone());
+                    let creator = match (controller.as_deref(), action.as_deref()) {
+                        (Some(controller), Some(action)) => format!("{controller}.{action}"),
+                        (Some(controller), None) => controller.to_string(),
+                        (None, Some(action)) => action.to_string(),
+                        (None, None) => entrypoint.name.clone(),
+                    };
+                    Some(FocusedBackendEndpoint {
+                        id: entrypoint.id.clone(),
+                        method: method.to_ascii_uppercase(),
+                        path: path.to_string(),
+                        file: super::display_path(&entrypoint.file),
+                        creator,
+                        controller,
+                        action,
+                        line: source_line_for_endpoint(&entrypoint.file, method, path, metadata),
+                    })
+                })
+                .collect();
+
+            FocusedProjectUnit {
+                id: unit.id.clone(),
+                root: super::display_path(&unit.root),
+                name: unit.name.clone(),
+                role: unit.role.as_str().to_string(),
+                files: unit.model.files,
+                technologies: unit
+                    .model
+                    .technologies
+                    .iter()
+                    .map(|technology| FocusedTechnology {
+                        category: technology.category.clone(),
+                        name: technology.name.clone(),
+                        classification: technology.classification.clone(),
+                        confidence: technology.confidence,
+                        detection_kind: technology.detection_kind.clone(),
+                        evidence: technology
+                            .evidence
+                            .iter()
+                            .map(|evidence| FocusedEvidence {
+                                kind: evidence.kind.as_str().to_string(),
+                                source: evidence.source.clone(),
+                                detail: evidence.detail.clone(),
+                                confidence: evidence.confidence,
+                            })
+                            .collect(),
+                    })
+                    .collect(),
+                backend_endpoints,
+                frontend_calls: unit
+                    .http_calls
+                    .iter()
+                    .map(|call| FocusedFrontendCall {
+                        method: call.method.to_ascii_uppercase(),
+                        path: call.path.clone(),
+                        component_id: call.component_id.clone(),
+                        file: super::display_path(&call.file),
+                        symbol: component_names
+                            .get(call.component_id.as_str())
+                            .map(|name| (*name).to_string()),
+                        line: source_line_for_call(&call.file, &call.method, &call.path),
+                    })
+                    .collect(),
+            }
+        })
+        .collect();
+
+    let unit_by_id = repository
+        .project_units
+        .iter()
+        .map(|unit| (unit.id.as_str(), unit))
+        .collect::<HashMap<_, _>>();
+
+    let endpoint_links = model
+        .cross_project_dependencies
+        .iter()
+        .filter(|dependency| {
+            dependency.source_repository_id == repository_id
+                && dependency.target_repository_id == repository_id
+                && dependency.kind == CrossProjectDependencyKind::Http
+        })
+        .filter_map(|dependency| {
+            let source = unit_by_id
+                .get(dependency.source_project_unit_id.as_str())
+                .copied()?;
+            let target = unit_by_id
+                .get(dependency.target_project_unit_id.as_str())
+                .copied()?;
+            let call = source.http_calls.iter().find(|call| {
+                call.component_id == dependency.source_component_id
+                    && call.evidence == dependency.evidence
+            })?;
+            let endpoint_id = dependency.target_entrypoint_id.as_deref()?;
+            let endpoint = target
+                .model
+                .entrypoints
+                .iter()
+                .find(|entrypoint| entrypoint.id == endpoint_id)?;
+            Some(FocusedEndpointLink {
+                consumer_project_unit_id: source.id.clone(),
+                consumer_component_id: call.component_id.clone(),
+                consumer_file: super::display_path(&call.file),
+                consumer_symbol: source
+                    .model
+                    .components
+                    .iter()
+                    .find(|component| component.id == call.component_id)
+                    .map(|component| component.name.clone()),
+                consumer_line: source_line_for_call(&call.file, &call.method, &call.path),
+                method: call.method.to_ascii_uppercase(),
+                path: endpoint
+                    .name
+                    .split_once(' ')
+                    .map_or_else(|| endpoint.name.clone(), |(_, path)| path.to_string()),
+                provider_project_unit_id: target.id.clone(),
+                provider_entrypoint_id: endpoint.id.clone(),
+                provider_file: super::display_path(&endpoint.file),
+                confidence: dependency.confidence,
+            })
+        })
+        .collect();
+
+    Ok(FocusedRepositoryAnalysis {
+        root: super::display_path(&repository.root),
+        name: repository.name.clone(),
+        project_units,
+        endpoint_links,
+    })
+}
+
+fn source_line_for_endpoint(
+    file: &str,
+    method: &str,
+    path: &str,
+    metadata: Option<&reposlice_core::EntrypointMetadata>,
+) -> Option<usize> {
+    let content = fs::read_to_string(file).ok()?;
+    let path_matches = unique_matching_lines(&content, |line| {
+        line.contains(path)
+            && line
+                .to_ascii_lowercase()
+                .contains(&method.to_ascii_lowercase())
+    });
+    if path_matches.is_some() {
+        return path_matches;
+    }
+    let action = metadata.and_then(|item| item.action.as_deref())?;
+    unique_matching_lines(&content, |line| {
+        let normalized = line.trim();
+        normalized.contains(&format!("{action}(")) || normalized.contains(&format!(" {action} ("))
+    })
+}
+
+fn source_line_for_call(file: &str, method: &str, path: &str) -> Option<usize> {
+    let content = fs::read_to_string(file).ok()?;
+    let path = path.split("${").next().unwrap_or(path);
+    if path.is_empty() {
+        return None;
+    }
+    let method = method.to_ascii_lowercase();
+    unique_matching_lines(&content, |line| {
+        let lower = line.to_ascii_lowercase();
+        lower.contains(&path.to_ascii_lowercase())
+            && (lower.contains("fetch(")
+                || lower.contains("axios")
+                || lower.contains("httpclient")
+                || lower.contains(&format!(".{method}(")))
+    })
+}
+
+fn unique_matching_lines<F>(content: &str, predicate: F) -> Option<usize>
+where
+    F: Fn(&str) -> bool,
+{
+    let mut matches = content
+        .lines()
+        .enumerate()
+        .filter_map(|(index, line)| predicate(line).then_some(index + 1));
+    let first = matches.next()?;
+    matches.next().is_none().then_some(first)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    #[test]
+    fn returns_unique_verified_source_lines() {
+        let path = std::env::temp_dir().join(format!(
+            "reposlice-focused-lines-{}-{}.ts",
+            std::process::id(),
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_nanos()
+        ));
+        fs::write(
+            &path,
+            "export function loadUser() {\n  return fetch('/api/users');\n}\n",
+        )
+        .unwrap();
+        assert_eq!(
+            source_line_for_call(path.to_str().unwrap(), "GET", "/api/users"),
+            Some(2)
+        );
+        let _ = fs::remove_file(path);
+    }
+
+    #[test]
+    fn leaves_ambiguous_source_locations_absent() {
+        let path = std::env::temp_dir().join(format!(
+            "reposlice-focused-lines-{}-{}.ts",
+            std::process::id(),
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_nanos()
+        ));
+        fs::write(&path, "fetch('/health');\nfetch('/health');\n").unwrap();
+        assert_eq!(
+            source_line_for_call(path.to_str().unwrap(), "GET", "/health"),
+            None
+        );
+        let _ = fs::remove_file(path);
+    }
+}
