@@ -5,10 +5,11 @@ entrypoints y dependencias sin ejecutar el código analizado. Permite consultar
 arquitectura, relacionar proyectos y crear cápsulas verificables a partir de un
 alcance seleccionado.
 
-[![Rust](https://img.shields.io/badge/Rust-000000?style=flat&logo=rust)](https://www.rust-lang.org/)
-[![CI](https://github.com/YeremiTech/RepoSlice/actions/workflows/ci.yml/badge.svg)](https://github.com/YeremiTech/RepoSlice/actions/workflows/ci.yml)
-[![Release](https://github.com/YeremiTech/RepoSlice/actions/workflows/release-desktop.yml/badge.svg)](https://github.com/YeremiTech/RepoSlice/actions/workflows/release-desktop.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/Rust-stable-000000?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![CI](https://img.shields.io/github/actions/workflow/status/YeremiTech/RepoSlice/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI)](https://github.com/YeremiTech/RepoSlice/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/badge/version-0.4.0-2563eb?style=for-the-badge)](https://github.com/YeremiTech/RepoSlice/releases)
+[![Releases](https://img.shields.io/badge/Releases-GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/YeremiTech/RepoSlice/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)](LICENSE)
 
 Versión base actual: `0.4.0`. La CI valida el motor Rust, la aplicación Desktop,
 los contratos frontend y los artefactos de release. El estado de cada workflow
